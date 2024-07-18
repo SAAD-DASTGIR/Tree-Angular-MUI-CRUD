@@ -1,0 +1,21 @@
+.mat-form-field {
+margin-right: 20px;
+}
+.subnode{
+    display: flex;
+    /* justify-content: space-between; */
+}
+.subnode1{
+    margin-right: 20px;
+    margin-left: 10px;
+}
+.subnode2{
+    margin-right: 20px;
+}
+.node{
+    display: flex;
+}
+.newnode{
+    margin-left: 10px;
+    margin-right:25px;
+}
