@@ -30,11 +30,11 @@ export class AppComponent implements OnInit {
   };
 
   treeControl = new FlatTreeControl<ExampleFlatNode>(
-    node => node.level,
+    node => node.level, 
     node => node.expandable,
   );
 
-  treeFlattener = new MatTreeFlattener(
+  treeFlattener = new MatTreeFlattener( 
     this._transformer,
     node => node.level,
     node => node.expandable,
@@ -43,13 +43,13 @@ export class AppComponent implements OnInit {
 
   dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
 
+  selectedNode: ExampleFlatNode | null = null;
+  editNodeName: string = '';
+
   constructor(private localService: LocalService) {}
 
   ngOnInit(): void {
     this.dataSource.data = this.localService.getTreeData();
-    console.log(MatTreeFlatDataSource)
-    console.log(MatTreeFlattener)
-    console.log(MatTreeFlattener)
   }
 
   hasChild = (_: number, node: ExampleFlatNode) => node.expandable;
@@ -59,8 +59,7 @@ export class AppComponent implements OnInit {
       const newNode: FoodNode = { name: name, children: [] };
       this.localService.addTreeNode(newNode);
       this.updateDataSource();
-    }
-    else{
+    } else {
       alert("ERROR : Node Already Exists Or You've entered Invalid Node")
     }
   }
@@ -74,6 +73,32 @@ export class AppComponent implements OnInit {
     }
   }
 
+  editNode(node: any): void {
+    if (!this.localService.nodeExists(node, this.dataSource.data)) {
+      this.selectedNode = node;
+      this.editNodeName = node.name;
+    }
+  }
+  reloadData() : any{
+    return this.updateDataSource()
+  }
+
+  updateNodeName(): void {
+    if (this.selectedNode && this.editNodeName.trim() !== '') {
+      if (!this.localService.nodeExists(this.editNodeName, this.dataSource.data)) {
+      this.localService.editTreeNode(this.selectedNode.name, this.editNodeName.trim());
+      this.selectedNode = null;
+      this.editNodeName = '';
+      this.updateDataSource();
+    }
+    else{
+      alert("ERROR : Node Already Present");
+    }
+    } else {
+      alert("ERROR : Invalid Node Name");
+    }
+  }
+
   addTreeNodeWithSubNode(nodeName: string, subNodeName: string): void {
     if (nodeName.trim() !== '' && subNodeName.trim() !== '') {
       if (!this.localService.nodeExists(nodeName, this.dataSource.data)) {
@@ -81,20 +106,8 @@ export class AppComponent implements OnInit {
         this.localService.addTreeNode(newNode);
         this.updateDataSource();
       }
-    
     }
   }
-
-  // DeleteTreeNodeWithSubNode(nodeName: string, subNodeName: string): void {
-  //   if (nodeName.trim() !== '' && subNodeName.trim() !== '') {
-  //     if (!this.localService.nodeExists(nodeName, this.dataSource.data)) {
-  //       const newNode: any = { name: nodeName, children: [{ name: subNodeName }] };
-  //       this.localService.deleteTreeNode(newNode.name);
-  //       this.updateDataSource();
-  //     }
-    
-  //   }
-  // }
 
   addSubNode(parentNodeName: string, subNodeName: string): void {
     if (parentNodeName.trim() !== '' && subNodeName.trim() !== '') {
@@ -102,15 +115,13 @@ export class AppComponent implements OnInit {
         const subNode: FoodNode = { name: subNodeName, children: [] };
         this.localService.addSubNode(parentNodeName, subNode);
         this.updateDataSource();
-      }
-      else{
+      } else {
         alert("Invalid Node Entered ")
       }
     }
-    // console.log("addsubnode not same name")
   }
 
-  private updateDataSource(): void {
+   updateDataSource(): any {
     const data = this.localService.getTreeData();
     this.dataSource.data = [];
     this.dataSource.data = data;

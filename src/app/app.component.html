@@ -1,51 +1,65 @@
 <mat-toolbar color="primary">
-    <span>Tree CRUD Operations</span>
-    <span class="example-spacer"></span>
-  </mat-toolbar>
-  <br>
-  <div class="node">
-    <div class="newnode">
+  <span>Tree CRUD Operations</span>
+  <span class="example-spacer"></span>
+</mat-toolbar>
+<br>
+<div class="node">
+  <div class="newnode">
       <mat-form-field (keyup.enter)="addTreeNode(newNodeName.value)">
-        <input matInput #newNodeName placeholder="New node name">
+          <input matInput #newNodeName placeholder="New node name">
       </mat-form-field>
-    </div>
-    <div class="tree-btn">
+  </div>
+  <div class="tree-btn">
       <button mat-raised-button color="primary" (click)="addTreeNode(newNodeName.value)">Add Node</button>
-    </div>
   </div>
-  <div class="subnode">
-    <div class="subnode1">
+</div>
+<div class="subnode">
+  <div class="subnode1">
       <mat-form-field (keyup.enter)="addSubNode(parentNodeName.value, subNodeName.value)">
-        <input matInput #parentNodeName placeholder="Parent node name">
+          <input matInput #parentNodeName placeholder="Parent node name">
       </mat-form-field>
-    </div>
-    <div class="subnode2">
-      <mat-form-field (keyup.enter)="addSubNode(parentNodeName.value, subNodeName.value)">
-        <input matInput #subNodeName placeholder="Sub node name">
-      </mat-form-field>
-    </div>
-    <button mat-raised-button color="primary" (click)="addSubNode(parentNodeName.value, subNodeName.value)">Add Sub Node</button>
   </div>
-  
-  <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
-    <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+  <div class="subnode2">
+      <mat-form-field (keyup.enter)="addSubNode(parentNodeName.value, subNodeName.value)">
+          <input matInput #subNodeName placeholder="Sub node name">
+      </mat-form-field>
+  </div>
+  <button mat-raised-button color="primary" (click)="addSubNode(parentNodeName.value, subNodeName.value)">Add Sub Node</button>
+</div>
+
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+  <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
       <button mat-icon-button disabled></button>
       {{node.name}}
       <button mat-icon-button color="warn" (click)="deleteTreeNode(node.name)">
-        <mat-icon>delete</mat-icon>
+          <mat-icon>delete</mat-icon>
       </button>
-    </mat-tree-node>
-  
-    <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
+      <button mat-icon-button color="primary" (click)="editNode(node)">
+          <mat-icon>edit</mat-icon>
+      </button>
+  </mat-tree-node>
+
+  <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
       <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.name">
-        <mat-icon color="primary" class="mat-icon-rtl-mirror">
-          {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
-        </mat-icon>
+          <mat-icon color="primary" class="mat-icon-rtl-mirror">
+              {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+          </mat-icon>
       </button>
       {{node.name}}
       <button mat-icon-button color="warn" (click)="deleteTreeNode(node.name)">
-        <mat-icon>delete</mat-icon>
+          <mat-icon>delete</mat-icon>
       </button>
-    </mat-tree-node>
-  </mat-tree>
-  
+      <button mat-icon-button color="primary" (click)="editNode(node)">
+          <mat-icon>edit</mat-icon>
+      </button>
+  </mat-tree-node>
+</mat-tree>
+
+<div *ngIf="selectedNode">
+  <mat-form-field (keyup.enter)="updateNodeName()">
+      <input matInput [(ngModel)]="editNodeName" placeholder="Edit node name">
+  </mat-form-field>
+  <button mat-raised-button color="primary" (click)="updateNodeName()">Edit Node</button>
+  <!-- <button mat-raised-button type="button" >Reset</button> -->
+  <button mat-raised-button color="warn" (click)="reloadData()">Close</button>
+</div>

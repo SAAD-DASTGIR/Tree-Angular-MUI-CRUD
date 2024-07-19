@@ -13,6 +13,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 
+import { FormsModule } from '@angular/forms'; // <-- Add this import
 
 
 @NgModule({
@@ -23,7 +24,7 @@ import {MatButtonModule} from '@angular/material/button';
   imports: [
     BrowserModule,HttpClientModule,MatTreeModule,MatToolbarModule,MatInputModule,
     MatIconModule,MatProgressBarModule, BrowserAnimationsModule,MatFormFieldModule,
-    MatButtonModule
+    MatButtonModule,FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
