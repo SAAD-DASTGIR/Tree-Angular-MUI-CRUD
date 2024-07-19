@@ -8,10 +8,12 @@ import { Injectable, OnInit } from '@angular/core';
 export class LocalService implements OnInit {
 
   private TreeData: any[] = [];
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    
+  }
   constructor() {}
 
-  setTreeData(data: any[]) {
+  setTreeData(data: any[]) { // arraylist of tree data
     this.TreeData = data;
     return this.TreeData;
   }
@@ -23,6 +25,29 @@ export class LocalService implements OnInit {
   addTreeNode(data: any) { 
     this.TreeData.push(data);
   }
+  deleteTreeNode(nodeName: string): void {
+    const deleteNodeRecursive = (nodes: any[], name: string): any[] => {
+      return nodes.filter(node => {
+        if (node.name === name) { // if node name matches
+          return false;
+        }
+        if (node.children) { // if its children delete then if it also havw children
+          node.children = deleteNodeRecursive(node.children, name);
+        }
+        return true;
+      });
+    };
+
+    this.TreeData = deleteNodeRecursive(this.TreeData, nodeName); // call recursivly when found node name 
+  }
+
+  editTreeNode(data: any, updatedData: any) {
+    const index = this.TreeData.findIndex(edit => edit.data === data);
+    if (index !== -1) {
+      this.TreeData[index] = updatedData;
+    } // not working dont have index right nwo
+  }
+
 
   addSubNode(parentNodeName: string, subNode: any) {
     const addSubNodeRecursive = (nodes: any[], parentName: string, subNode: any) => { // return tree data

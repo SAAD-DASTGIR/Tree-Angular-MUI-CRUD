@@ -3,40 +3,37 @@
     <span class="example-spacer"></span>
   </mat-toolbar>
   <br>
-  <div class="node"> 
-
-      <div class="newnode">
-    
+  <div class="node">
+    <div class="newnode">
       <mat-form-field (keyup.enter)="addTreeNode(newNodeName.value)">
         <input matInput #newNodeName placeholder="New node name">
       </mat-form-field>
     </div>
-    <button mat-raised-button color="primary" (click)="addTreeNode(newNodeName.value)">Add Node</button>
-    <!-- <button mat-raised-button color="warn" >Delete Node</button> -->
+    <div class="tree-btn">
+      <button mat-raised-button color="primary" (click)="addTreeNode(newNodeName.value)">Add Node</button>
+    </div>
   </div>
-  <!-- <div *ngIf="addTreeNode(newNodeName.value)">test</div> -->
   <div class="subnode">
     <div class="subnode1">
-
-        <mat-form-field (keyup.enter)="addSubNode(parentNodeName.value, subNodeName.value)" >
-            <input matInput #parentNodeName placeholder="Parent node name">
-        </mat-form-field>
+      <mat-form-field (keyup.enter)="addSubNode(parentNodeName.value, subNodeName.value)">
+        <input matInput #parentNodeName placeholder="Parent node name">
+      </mat-form-field>
     </div>
     <div class="subnode2">
-
-        <mat-form-field (keyup.enter)="addSubNode(parentNodeName.value, subNodeName.value)">
-            <input matInput #subNodeName placeholder="Sub node name">
-        </mat-form-field>
-    </div>    
-    <!-- <br><br> -->
-    <button mat-raised-button color="primary" (click)="addSubNode(parentNodeName.value, subNodeName.value)">Add Sub Node</button>
+      <mat-form-field (keyup.enter)="addSubNode(parentNodeName.value, subNodeName.value)">
+        <input matInput #subNodeName placeholder="Sub node name">
+      </mat-form-field>
     </div>
+    <button mat-raised-button color="primary" (click)="addSubNode(parentNodeName.value, subNodeName.value)">Add Sub Node</button>
+  </div>
   
   <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
     <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-      <button mat-icon-button disabled ></button>
-      
+      <button mat-icon-button disabled></button>
       {{node.name}}
+      <button mat-icon-button color="warn" (click)="deleteTreeNode(node.name)">
+        <mat-icon>delete</mat-icon>
+      </button>
     </mat-tree-node>
   
     <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
@@ -46,6 +43,9 @@
         </mat-icon>
       </button>
       {{node.name}}
+      <button mat-icon-button color="warn" (click)="deleteTreeNode(node.name)">
+        <mat-icon>delete</mat-icon>
+      </button>
     </mat-tree-node>
   </mat-tree>
   

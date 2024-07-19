@@ -47,6 +47,9 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.dataSource.data = this.localService.getTreeData();
+    console.log(MatTreeFlatDataSource)
+    console.log(MatTreeFlattener)
+    console.log(MatTreeFlattener)
   }
 
   hasChild = (_: number, node: ExampleFlatNode) => node.expandable;
@@ -62,6 +65,15 @@ export class AppComponent implements OnInit {
     }
   }
 
+  deleteTreeNode(name: string): void {
+    if (name.trim() !== '') {
+      this.localService.deleteTreeNode(name);
+      this.updateDataSource();
+    } else {
+      alert("ERROR : No Node Exists!!!");
+    }
+  }
+
   addTreeNodeWithSubNode(nodeName: string, subNodeName: string): void {
     if (nodeName.trim() !== '' && subNodeName.trim() !== '') {
       if (!this.localService.nodeExists(nodeName, this.dataSource.data)) {
@@ -72,6 +84,17 @@ export class AppComponent implements OnInit {
     
     }
   }
+
+  // DeleteTreeNodeWithSubNode(nodeName: string, subNodeName: string): void {
+  //   if (nodeName.trim() !== '' && subNodeName.trim() !== '') {
+  //     if (!this.localService.nodeExists(nodeName, this.dataSource.data)) {
+  //       const newNode: any = { name: nodeName, children: [{ name: subNodeName }] };
+  //       this.localService.deleteTreeNode(newNode.name);
+  //       this.updateDataSource();
+  //     }
+    
+  //   }
+  // }
 
   addSubNode(parentNodeName: string, subNodeName: string): void {
     if (parentNodeName.trim() !== '' && subNodeName.trim() !== '') {
