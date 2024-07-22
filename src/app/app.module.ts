@@ -14,6 +14,7 @@ import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 
 import { FormsModule } from '@angular/forms'; // <-- Add this import
+import { CommonModule } from '@angular/common';
 
 
 @NgModule({
@@ -24,7 +25,7 @@ import { FormsModule } from '@angular/forms'; // <-- Add this import
   imports: [
     BrowserModule,HttpClientModule,MatTreeModule,MatToolbarModule,MatInputModule,
     MatIconModule,MatProgressBarModule, BrowserAnimationsModule,MatFormFieldModule,
-    MatButtonModule,FormsModule
+    MatButtonModule,FormsModule,CommonModule
   ],
   providers: [],
   bootstrap: [AppComponent]

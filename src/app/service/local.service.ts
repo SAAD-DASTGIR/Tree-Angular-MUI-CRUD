@@ -1,50 +1,66 @@
-import { Injectable, OnInit } from '@angular/core';
+import { Injectable } from '@angular/core';
+
+interface FoodNode {
+  id: number;
+  name: string;
+  children?: FoodNode[];
+}
 
 @Injectable({
   providedIn: 'root'
 })
-export class LocalService implements OnInit {
-  private TreeData: any[] = [];
-  
-  ngOnInit(): void {}
-  
+export class LocalService {
+  private TreeData: FoodNode[] = [];
+  private counter = 1;
+
   constructor() {}
 
-  setTreeData(data: any[]) {
+  setTreeData(data: FoodNode[]) {
     this.TreeData = data;
     return this.TreeData;
   }
 
-  getTreeData() {
+  getTreeData(): FoodNode[] {
     return this.TreeData;
   }
 
-  addTreeNode(data: any) { 
-    this.TreeData.push(data);
+  addTreeNode(name: string): void {
+    const newNode: FoodNode = { 
+      id: this.counter++, 
+      name: name, 
+      children: [] };
+    this.TreeData.push(newNode);
   }
 
-  deleteTreeNode(nodeName: string): void {
-    const deleteNodeRecursive = (nodes: any[], name: string): any[] => {
+  deleteTreeNode(nodeId: number): void {
+    const deleteNodeRecursive = (nodes: FoodNode[], id: number): FoodNode[] => {
       return nodes.filter(node => {
-        if (node.name === name) {
-          return false;
-        }
         if (node.children) {
-          node.children = deleteNodeRecursive(node.children, name);
+          node.children = deleteNodeRecursive(node.children, id);
+        }
+        if (node.id === id) {
+          if (node.children && node.children.length > 0) {
+            alert(`Delete Child First For ${node.name}`);
+            return true; // Prevent deletion by returning true
+          }
+          return false; // Allow deletion by returning false
         }
         return true;
       });
     };
 
-    this.TreeData = deleteNodeRecursive(this.TreeData, nodeName);
+    this.TreeData = deleteNodeRecursive(this.TreeData, nodeId);
   }
 
-  editTreeNode(oldName: string, newName: string): void {
-    const editNodeRecursive = (nodes: any[]): any[] => {
+
+  editTreeNode(nodeId: number, newName: string): void {
+    const editNodeRecursive = (nodes: FoodNode[]): FoodNode[] => {
+      
       return nodes.map(node => {
-        if (node.name === oldName) {
+        if (node.id === nodeId) {
           node.name = newName;
         }
+        
         if (node.children) {
           node.children = editNodeRecursive(node.children);
         }
@@ -55,17 +71,24 @@ export class LocalService implements OnInit {
     this.TreeData = editNodeRecursive(this.TreeData);
   }
 
-  addSubNode(parentNodeName: string, subNode: any) {
-    const addSubNodeRecursive = (nodes: any[], parentName: string, subNode: any) => {
+  addSubNode(parentId: number, subNodeName: string): void {
+    const addSubNodeRecursive = (nodes: FoodNode[], parentId: number, subNode: FoodNode): boolean => {
       for (let node of nodes) {
-        if (node.name === parentName) {
+        if (node.id === parentId) {
           if (!node.children) {
             node.children = [];
           }
-          node.children.push(subNode);
-          return true;
+
+          const siblingExists = node.children.some(child => child.name === subNode.name);
+          if (!siblingExists) {
+            node.children.push(subNode);
+            return true;
+          } else {
+            alert(`Error: A sibling with the name ${subNode.name} already exists.`);
+            return false;
+          }
         } else if (node.children) {
-          if (addSubNodeRecursive(node.children, parentName, subNode)) {
+          if (addSubNodeRecursive(node.children, parentId, subNode)) {
             return true;
           }
         }
@@ -73,15 +96,16 @@ export class LocalService implements OnInit {
       return false;
     };
 
-    addSubNodeRecursive(this.TreeData, parentNodeName, subNode);
+    const newSubNode: FoodNode = { id: this.counter++, name: subNodeName, children: [] };
+    addSubNodeRecursive(this.TreeData, parentId, newSubNode);
   }
 
-  nodeExists(name: string, nodes: any[]): boolean {
+  nodeExists(name: string, nodes: FoodNode[], checkChildren = false): boolean {
     for (let node of nodes) {
-      if (node.name === name) {
+      if (node.name === name && !checkChildren) {
         return true;
       }
-      if (node.children && this.nodeExists(name, node.children)) {
+      if (node.children && this.nodeExists(name, node.children, checkChildren)) {
         return true;
       }
     }
