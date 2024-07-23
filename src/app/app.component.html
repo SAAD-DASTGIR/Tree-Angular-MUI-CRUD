@@ -27,6 +27,31 @@
   <button mat-raised-button color="primary" (click)="addSubNode(parseStringToInt(parentNodeId.value), subNodeName.value)">Add Sub Node</button>
 </div>
 
+<div class="move-node">
+  <div class="move-node2">
+    <div class="move-div">
+
+      <mat-form-field (keyup.enter)="moveNode(parseStringToInt(nodeId.value), parseStringToInt(newParentId.value))">
+        <input matInput #nodeId placeholder="Node ID to move">
+      </mat-form-field>
+    </div>
+  
+    <div class="move-div">
+
+      <mat-form-field (keyup.enter)="moveNode(parseStringToInt(nodeId.value), parseStringToInt(newParentId.value))">
+        <input matInput #newParentId placeholder="New parent node ID">
+      </mat-form-field>
+    </div>
+    <button mat-raised-button color="primary" (click)="moveNode(parseStringToInt(nodeId.value), parseStringToInt(newParentId.value))">Move Node</button>
+  </div>
+</div>
+<!-- 
+<div class="filter">
+  <mat-form-field>
+    <input matInput (input)="applyFilter($event.target.value)" placeholder="Filter nodes">
+  </mat-form-field>
+</div> -->
+
 <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
   <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
     <button mat-icon-button disabled></button>

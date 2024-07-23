@@ -22,3 +22,10 @@ margin-right: 20px;
 .tree-btn{
     margin-right: 3rem;
 }
+.move-node2{
+    display: flex;
+}
+.move-div{
+    margin-right: 1rem;
+    margin-left: 10px;
+}

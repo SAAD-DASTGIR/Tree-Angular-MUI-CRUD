@@ -92,15 +92,21 @@ export class AppComponent implements OnInit {
       alert("ERROR : Invalid Node Name");
     }
   }
-
+// checks not working properly
   addSubNode(parentId: number, subNodeName: string): void {
     if (subNodeName.trim() !== '') {
       this.localService.addSubNode(parentId, subNodeName);
       this.updateDataSource();
-      console.log()
     } else {
       alert("Invalid Node Entered ");
     }
+  }
+  
+// checks not working properly sercvice need to show alert when swaping parenet with child
+
+  moveNode(nodeId: number, newParentId: number): void {
+    this.localService.moveNode(nodeId, newParentId);
+    this.updateDataSource();
   }
 
   updateDataSource(): void {
@@ -108,4 +114,6 @@ export class AppComponent implements OnInit {
     this.dataSource.data = [];
     this.dataSource.data = data;
   }
+
+  
 }
