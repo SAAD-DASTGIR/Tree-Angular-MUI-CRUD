@@ -112,10 +112,8 @@ export class LocalService {
 
   moveNode(nodeId: number, newParentId: number): void {
     // Check for circular dependencies
-    if (this.isDescendant(newParentId, nodeId)) {
-      alert('Error 1 : Cannot move a node ');
-      if(this.isDescendant(newParentId, nodeId)) {
-        alert('Error 1 : Cannot move a node ');}
+    if (this.isDescendant(nodeId, newParentId)) {
+      alert('Cannot move a node to one of its descendants');
       return;
     }
 
@@ -138,7 +136,7 @@ export class LocalService {
     const newTreeData = removeNodeRecursive(this.TreeData);
 
     if (!nodeToMove) {
-      alert('Error 2 : Cannot move a node');
+      alert('Node to move not found');
       return;
     }
 
@@ -148,8 +146,14 @@ export class LocalService {
           if (!node.children) {
             node.children = [];
           }
-          node.children.push(nodeToMove); // Add to child array
-          return true;
+          // Ensure the node is not added in it own child 
+          if (nodeToMove.id !== parent && !this.isDescendant(nodeToMove.id, newParentId)) {
+            node.children.push(nodeToMove); // Add to child arr
+            return true;
+          } else {
+            alert('Cannot add a node to itself or its descendants');
+            return false;
+          }
         }
         if (node.children) {
           if (addNodeToNewParentRecursive(node.children)) {
@@ -163,7 +167,7 @@ export class LocalService {
     if (addNodeToNewParentRecursive(newTreeData)) {
       this.TreeData = newTreeData;
     } else {
-      alert('Error 3 : Failed to move node');
+      alert('Failed to move node to the new parent');
     }
   }
 
