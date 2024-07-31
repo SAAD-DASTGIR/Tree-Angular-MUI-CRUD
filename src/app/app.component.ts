@@ -211,7 +211,9 @@ export class AppComponent implements OnInit {
     let parentNode: TreeNode | undefined = this.findNodeById(this.nodes, parentNodeId);
 
     if (!parentNode) {
+
       console.error('Invalid parent node:', parentNodeId);
+      alert(`Invalid parent node: ${parentNodeId}`)
       return;
     }
 
@@ -227,7 +229,7 @@ export class AppComponent implements OnInit {
 
     const newSubNode = {
       name: subNodeName,
-      parent: parentNode.id
+      parent: parentNodeId
     };
 
     this.localService.addSubNode(newSubNode).subscribe({
@@ -237,10 +239,15 @@ export class AppComponent implements OnInit {
         const newNode: TreeNode = {
           id: addedNode.id,
           name: addedNode.attributes.name,
-          N_ID: addedNode.attributes.N_ID,
-          children: addedNode.attributes.children || []
+          N_ID: addedNode.attributes.N_ID, // optional
+          children: addedNode.attributes.children || [] //optional
         };
-        if(parentNode){parentNode.children = parentNode?.children || []}
+        if(parentNode){
+          parentNode.children = parentNode?.children || []
+        }
+        else{
+          console.log("test")//test
+        }
         parentNode?.children?.push(newNode); // Add the new subnode to the parent's children array
         this.dataSource.data = [...this.dataSource.data]; // Refresh the data source
       },
