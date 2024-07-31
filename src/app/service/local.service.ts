@@ -1,198 +1,146 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
 interface FoodNode {
-  id: number;
+  id?: number;
   name: string;
-  children?: FoodNode[];
+  parent?: number;
 }
 
+// @Injectable({
+//   providedIn: 'root'
+// })
+// export class LocalService {
+//   private apiUrl = 'http://localhost:1337/api/trees';
+
+//   constructor(private http: HttpClient) {}
+//   getNodes(): Observable<any> {
+//     return this.http.get(this.apiUrl).pipe()
+//   }
+
+//   getTreeData(): Observable<FoodNode[]> {
+//     return this.http.get<FoodNode[]>(this.apiUrl);
+//   }
+
+//  addTreeNode(payload: any): Observable<any> {
+//   return this.http.post(this.apiUrl, payload)
+// }
+
+// updateNode(id: number, node: any): Observable<any> {
+//   return this.http.put<any>(`${this.apiUrl}/${id}`, { data: node });
+// }
+
+//   deleteTreeNode(id: number): Observable<void> {
+//     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+//   }
+
+//   editTreeNode(id: number, name: string): Observable<FoodNode> {
+//     return this.http.put<FoodNode>(`${this.apiUrl}/${id}`, { data: name });
+
+//   }
+//   addNode(node: any): Observable<any> {
+//     return this.http.post<any>(this.apiUrl, { data: node });
+//   }
+
+
+//   addSubNode(parentId: number, subNodeName: string): Observable<FoodNode> {
+//     return this.http.post<FoodNode>(this.apiUrl, { name: subNodeName, parent: parentId });
+//   }
+
+//   moveNode(nodeId: number, newParentId: number): Observable<FoodNode> {
+//     return this.http.put<FoodNode>(`${this.apiUrl}/${nodeId}`, { parent: newParentId });
+//   }
+
+//   nodeExists(name: string, nodes: any, checkChildren = false): boolean {
+//     // Check if nodes is an object with a `data` property and extract the array
+//     let nodeArray = Array.isArray(nodes) ? nodes : nodes?.data;
+
+//     if (!Array.isArray(nodeArray)) {
+//       console.error('The provided nodes parameter is not an array:', nodes);
+//       return false;
+//     }
+
+//     for (let node of nodeArray) {
+//       if (node.name === name && !checkChildren) {
+//         return true;
+//       }
+//       if (node.children && this.nodeExists(name, node.children, checkChildren)) {
+//         return true;
+//       }
+//     }
+//     return false;
+//   }
+// }
+
+
+interface TreeNode { // custom interface according to strapi
+  id: number;
+  name: string;
+  N_ID?: string | null; // optional bcz strapi also generate itself a id
+  children?: TreeNode[];
+}
 @Injectable({
   providedIn: 'root'
 })
 export class LocalService {
-  private TreeData: FoodNode[] = [];
-  private counter = 1; // used for id generation to identify each node
+  private apiUrl = 'http://localhost:1337/api/trees';
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
-  setTreeData(data: FoodNode[]) {
-    this.TreeData = data;
-    return this.TreeData;
+  getNodes(): Observable<any> {
+    return this.http.get(this.apiUrl);
   }
 
-  getTreeData(): FoodNode[] {
-    return this.TreeData;
+  getTreeData(): Observable<TreeNode[]> {
+    return this.http.get<TreeNode[]>(`${this.apiUrl}?populate=*`);
   }
 
-  addTreeNode(name: string): void {
-    const newNode: FoodNode = {
-      id: this.counter++,
-      name: name,
-      children: []
-    };
-    this.TreeData.push(newNode);
+
+  addTreeNode(payload: any): Observable<any> {
+    return this.http.post(this.apiUrl, payload);
   }
 
-  deleteTreeNode(nodeId: number): void {
-    const deleteNodeRecursive = (nodes: FoodNode[], id: number): FoodNode[] => {
-      return nodes.filter(node => {
-        if (node.children) {
-          node.children = deleteNodeRecursive(node.children, id);
-        }
-        if (node.id === id) {
-          if (node.children && node.children.length > 0) {
-            alert(`Delete Child First For ${node.name}`);
-            return true; // Prevent deletion by returning true
-          }
-          return false; // Allow deletion by returning false
-        }
-        return true;
-      });
-    };
-
-    this.TreeData = deleteNodeRecursive(this.TreeData, nodeId);
+  updateNode(id: number, node: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}`, { data: node });
   }
 
-  editTreeNode(nodeId: number, newName: string): void {
-    const editNodeRecursive = (nodes: FoodNode[]): FoodNode[] => {
-      return nodes.map(node => {
-        if (node.id === nodeId) {
-          node.name = newName;
-        }
-        if (node.children) {
-          node.children = editNodeRecursive(node.children);
-        }
-        return node;
-      });
-    };
-
-    this.TreeData = editNodeRecursive(this.TreeData);
+  deleteTreeNode(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  addSubNode(parentId: number, subNodeName: string): void {
-    const addSubNodeRecursive = (nodes: FoodNode[], parentId: number, subNode: FoodNode): boolean => {
-      for (let node of nodes) {
-        if (node.id === parentId) {
-          if (!node.children) {
-            node.children = [];
-          }
+  addNode(node: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl, { data: node });
+  }
 
-          const siblingExists = node.children.some(child => child.name === subNode.name);
-          if (!siblingExists) {
-            node.children.push(subNode);
-            return true;
-          } else {
-            alert(`Error: A sibling with the name ${subNode.name} already exists.`);
-            return false;
-          }
-        } else if (node.children) {
-          if (addSubNodeRecursive(node.children, parentId, subNode)) {
-            return true;
-          }
+  addSubNode(subNode: { name: string; parent: number }): Observable<any> {
+    const payload = {
+      data: {
+        name: subNode.name,
+        parent: {
+          id: subNode.parent
         }
       }
-      return false;
     };
-
-    const newSubNode: FoodNode = { id: this.counter++, name: subNodeName, children: [] };
-    addSubNodeRecursive(this.TreeData, parentId, newSubNode);
+    console.log('Payload for addSubNode:', payload); // Log the payload
+    return this.http.post<any>(this.apiUrl, payload);
   }
 
-  nodeExists(name: string, nodes: FoodNode[], checkChildren = false): boolean {
+
+  moveNode(nodeId: number, newParentId: number): Observable<FoodNode> {
+    return this.http.put<FoodNode>(`${this.apiUrl}/${nodeId}`, { parent: newParentId });
+  }
+
+  nodeExists(name: string, nodes: TreeNode[]): boolean {
     for (let node of nodes) {
-      if (node.name === name && !checkChildren) {
+      if (node.name === name) {
         return true;
       }
-      if (node.children && this.nodeExists(name, node.children, checkChildren)) {
+      if (node.children && this.nodeExists(name, node.children)) {
         return true;
       }
     }
     return false;
   }
-
-  moveNode(nodeId: number, newParentId: number): void {
-    // Check for circular dependencies
-    if (this.isDescendant(nodeId, newParentId)) {
-      alert('Cannot move a node to one of its descendants');
-      return;
-    }
-
-    let nodeToMove: any = null;
-
-    // Remove node from its current location
-    const removeNodeRecursive = (nodes: FoodNode[]): FoodNode[] => {
-      return nodes.filter(node => {
-        if (node.id === nodeId) {
-          nodeToMove = { ...node }; // Copy node to move
-          return false; // Remove node
-        }
-        if (node.children) {
-          node.children = removeNodeRecursive(node.children);
-        }
-        return true;
-      });
-    };
-
-    const newTreeData = removeNodeRecursive(this.TreeData);
-
-    if (!nodeToMove) {
-      alert('Node to move not found');
-      return;
-    }
-
-    const addNodeToNewParentRecursive = (nodes: FoodNode[]): boolean => {
-      for (let node of nodes) {
-        if (node.id === newParentId) {
-          if (!node.children) {
-            node.children = [];
-          }
-          // Ensure the node is not added in it own child 
-          if (nodeToMove.id !== parent && !this.isDescendant(nodeToMove.id, newParentId)) {
-            node.children.push(nodeToMove); // Add to child arr
-            return true;
-          } else {
-            alert('Cannot add a node to itself or its descendants');
-            return false;
-          }
-        }
-        if (node.children) {
-          if (addNodeToNewParentRecursive(node.children)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    };
-
-    if (addNodeToNewParentRecursive(newTreeData)) {
-      this.TreeData = newTreeData;
-    } else {
-      alert('Failed to move node to the new parent');
-    }
-  }
-
-  // Helper function to check if node is a descendant of another node
-  isDescendant(parentId: number, nodeId: number): boolean {
-    let result = false;
-
-    const checkRecursive = (nodes: FoodNode[]): boolean => {
-      for (let node of nodes) {
-        if (node.id === parentId) {
-          result = node.children?.some(child => child.id === nodeId) || false;
-          if (result) {
-            return true;
-          }
-        }
-        if (node.children) {
-          if (checkRecursive(node.children)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    };
-
-    checkRecursive(this.TreeData);
-    return result;
-  }
 }
+
