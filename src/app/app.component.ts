@@ -64,6 +64,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchNodes(); // on page intializes fetch the whole tree node
+
   }
 
   hasChild = (_: number, node: any) => node.expandable; // variable to findout if child exists or not
@@ -109,13 +110,6 @@ export class AppComponent implements OnInit {
     });
   }
 
-
-
-
-
-
-
-
   addTreeNode(name: string): void {
     if (name.trim() !== '') {// check for non empty string
       const payload = { // made payload because strapi needs it
@@ -123,8 +117,9 @@ export class AppComponent implements OnInit {
           name: name, // we can also add another attributes other than name as well
         }
       };
-      if (this.localService.nodeExists(name, this.nodes)) { // need fixing
+      if (this.localService.nodeExiststest(name, this.nodes)) { // need fixing
         console.error('Node name already exists');
+        alert("Same name as Sibling is present")
         return;
       }
 
@@ -139,7 +134,13 @@ export class AppComponent implements OnInit {
     }
   }
 
-  deleteTreeNode(id: number): void { // passing id to delete the node
+  deleteTreeNode(id: number): void {
+    const nodeToDelete = this.findNodeById(this.nodes, id);
+    if (nodeToDelete && nodeToDelete.children && nodeToDelete.children.length > 0) {
+      console.error('Node has children and cannot be deleted');
+      alert("Node has children and cannot be deleted")
+      return;
+    }
     this.localService.deleteTreeNode(id).subscribe({
       next: () => this.fetchNodes(),
       error: err => console.error('Error deleting node:', err)
@@ -152,7 +153,7 @@ export class AppComponent implements OnInit {
   }
 
   updateNodeName(node: any, newName: string) {
-    if (this.localService.nodeExists(newName, this.nodes)) {
+    if (this.localService.nodeExists(newName, null)) {
       console.error('Node name already exists');
       return;
     }
@@ -174,71 +175,21 @@ export class AppComponent implements OnInit {
       }
     });
   }
-
-  // addSubNode(parentNodeId: number | TreeNode, subNodeName: string) { // function to add subnode
-  //   let parentNode: TreeNode | undefined | any; // defining parent node
-  //   if (typeof parentNodeId === 'number') {// checking type of node bcz sometimes it gives it as string
-  //     parentNode = this.findNodeById(this.nodes, parentNodeId);
-  //   } else {
-  //     parentNode = parentNodeId;
-  //   }
-
-  //   console.log('Parent node:', parentNode);
-
-  //   if (!parentNode || typeof parentNode !== 'object') { //check for vailidating parentnode ID
-  //     console.error('Invalid parent node:', parentNode);
-  //     return;
-  //   }
-
-  //   if (!Array.isArray(parentNode.children)) {
-  //     parentNode.children = [];
-  //   }
-
-  //   if (this.localService.nodeExists(subNodeName, parentNode.children)) {
-  //     console.error('Subnode name already exists under this parent');
-  //     return;
-  //   }
-
-  //   const newSubNode = { // object for adding new subnode bcz on frontend we have name and parentid
-  //     name: subNodeName,
-  //     parentId: parentNode.id
-  //   };
-
-  //   this.localService.addSubNode(newSubNode).subscribe({ // calling the service and passing the newSubNode data
-  //     next: (data: any) => {
-  //       console.log('Subnode added successfully:', data);
-  //       const newNode = {
-  //         id: data.data.id,
-  //         name: data.data.attributes.name,
-  //         N_ID: data.data.attributes.N_ID,
-  //         children: []
-  //       };
-  //       parentNode.children.push(newNode);// adds to children of the parents
-  //       this.dataSource.data = this.nodes;
-  //       this.treeControl.dataNodes = this.dataSource.data; // pass that datasource to the tree control
-  //       // this.fetchNodes()
-  //     },
-  //     error: (error: any) => {
-  //       console.error('Error adding subnode:', error);
-  //     }
-  //   });
-  // }
-
-  // findNodeById(nodes: TreeNode[], id: number): TreeNode | undefined { // fc to identify the node from its id in array of ojects
-  //   for (let node of nodes) {
-  //     if (node.id === id) {
-  //       return node;
-  //     }
-  //     if (node.children) {
-  //       const childNode = this.findNodeById(node.children, id);
-  //       if (childNode) {
-  //         return childNode;
-  //       }
-  //     }
-  //   }
-  //   return undefined;
-  // }
   addSubNode(parentNodeId: number, subNodeName: string): void {
+    const parentNode = this.findNodeById(this.nodes, parentNodeId);
+
+    if (!parentNode) {
+      console.error('Parent node not found');
+      return;
+    }
+
+    if (this.localService.nodeExists(subNodeName, parentNode)) {
+
+      console.error('Subnode name already exists under this parent');
+      alert("Subnode name already exists under this parent")
+      return;
+    }
+
     const newSubNode = {
       name: subNodeName,
       parent: parentNodeId
@@ -260,18 +211,13 @@ export class AppComponent implements OnInit {
             children: child.attributes.children || []
           })) || []
         };
-        const parentNode = this.findNodeById(this.nodes, parentNodeId);
-        if (parentNode) {
-          parentNode.children = parentNode.children || [];
-          parentNode.children.push(newNode);
-          this.dataSource.data = [...this.dataSource.data];
-        }
+        parentNode.children = parentNode.children || [];
+        parentNode.children.push(newNode);
+        this.dataSource.data = [...this.dataSource.data];
       },
       error: (err) => console.error('Error adding sub node:', err)
     });
   }
-
-
 
   findNodeById(nodes: TreeNode[], id: number): TreeNode | undefined {
     for (let node of nodes) {
