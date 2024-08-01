@@ -147,21 +147,42 @@ export class AppComponent implements OnInit {
   }
 
   deleteTreeNode(id: number): void {
-    const nodeToDelete = this.findNodeById(this.nodes, id);
-    if (
-      nodeToDelete &&
-      nodeToDelete.children &&
-      nodeToDelete.children.length > 0
-    ) {
-      alert('Node has children and cannot be deleted');
-      return;
-    }
-    this.localService.deleteTreeNode(id).subscribe({
-      next: () => this.fetchNodes(),
-      error: (err) => console.error('Error deleting node:', err),
-    });
-  }
+    const nodeToDelete:any = this.findNodeById(this.nodes, id);
 
+    // Check if the node exists
+    if (!nodeToDelete) {
+        alert('Node not found');
+        return;
+    }
+
+    // Confirm deletion if the node has children
+    if (nodeToDelete.children && nodeToDelete.children.length > 0) {
+        const confirmDelete = confirm('This node has children. Are you sure you want to delete it and all its children?');
+        if (!confirmDelete) {
+            return;
+        }
+    }
+
+    // Recursively delete all children
+    this.deleteChildren(nodeToDelete.children);
+
+    // Proceed to delete the parent node
+    this.localService.deleteTreeNode(id).subscribe({
+        next: () => this.fetchNodes(),
+        error: (err) => console.error('Error deleting node:', err),
+    });
+}
+
+// Helper function to delete all children recursively
+private deleteChildren(children: Node[]|any): void {
+    for (const child of children) {
+        this.deleteChildren(child.children); // Recursively delete child nodes
+        this.localService.deleteTreeNode(child.id).subscribe({
+            next: () => console.log(`Deleted child node with id: ${child.id}`),
+            error: (err) => console.error('Error deleting child node:', err),
+        });
+    }
+}
   editNode(node: ExampleFlatNode): void {
     this.selectedNode = node;
     this.editNodeName = node.name;
