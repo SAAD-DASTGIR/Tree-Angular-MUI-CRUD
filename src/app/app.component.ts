@@ -9,12 +9,14 @@ interface FoodNode { // interface from angular mui taken
   children?: FoodNode[];
 }
 
-interface TreeNode { // custom interface according to strapi
+interface TreeNode {
   id: number;
   name: string;
-  N_ID?: string | null; // optional bcz strapi also generate itself a id
+  N_ID: string | null;
   children?: TreeNode[];
+  parent?: number | null; // Add this line
 }
+
 
 interface ExampleFlatNode { // interface for flat nodes given in documentation
   expandable: boolean;
@@ -68,21 +70,51 @@ export class AppComponent implements OnInit {
   parseStringToInt(value: string): number { // used because sometimes by default it consider id as string
     return parseInt(value, 10); // integer conversion not decimal
   }
-  fetchNodes(): void { // function to the load the node data
+  fetchNodes(): void {
     this.localService.getNodes().subscribe({
       next: (response) => {
-        this.nodes = response.data.map((item: any) => ({
-          id: item.id, // fetch its id, used for adding subnode
-          name: item.attributes.name, // fetch name, also attributes is used bcz api response from strapi give this in default
-          children: item.attributes.children || [] // fetch children or give empty array
-        }));
-        this.dataSource.data = this.nodes; // loads data in the datasource
-        this.treeControl.dataNodes = this.dataSource.data; // passed that datasource to treecontrol
-        this.treeControl.expandAll(); // Optional: Expand all nodes
+        // Process the response to handle nested structures
+        const processNode = (node: any): TreeNode => ({
+          id: node.id,
+          name: node.attributes.name,
+          N_ID: node.attributes.N_ID,
+          parent: node.attributes.parent?.data?.id || null,
+          children: node.attributes.children?.data.map((child: any) => processNode(child)) || []
+        });
+
+        // Map the response data to the TreeNode structure
+        let nodes = response.data.map((item: any) => processNode(item));
+
+        // Filter out nodes that are not root (i.e., have a parent)
+        const rootNodes = nodes.filter((node: { parent: any; }) => !node.parent);
+
+        // Construct the hierarchical tree structure
+        const nodeMap: { [key: number]: TreeNode|any } = {};
+        nodes.forEach((node: TreeNode) => {
+          nodeMap[node.id] = node;
+        });
+        nodes.forEach((node: TreeNode) => {
+          if (node.parent && nodeMap[node.parent]) {
+            nodeMap[node.parent].children = nodeMap[node.parent].children || [];
+            nodeMap[node.parent].children.push(node);
+          }
+        });
+
+        this.nodes = rootNodes;
+        this.dataSource.data = this.nodes;
+        this.treeControl.dataNodes = this.dataSource.data;
+        this.treeControl.expandAll();
       },
       error: (err) => console.error('Error fetching nodes:', err)
     });
   }
+
+
+
+
+
+
+
 
   addTreeNode(name: string): void {
     if (name.trim() !== '') {// check for non empty string
@@ -206,27 +238,7 @@ export class AppComponent implements OnInit {
   //   }
   //   return undefined;
   // }
-
   addSubNode(parentNodeId: number, subNodeName: string): void {
-    let parentNode: TreeNode | undefined = this.findNodeById(this.nodes, parentNodeId);
-
-    if (!parentNode) {
-
-      console.error('Invalid parent node:', parentNodeId);
-      alert(`Invalid parent node: ${parentNodeId}`)
-      return;
-    }
-
-    if (!subNodeName.trim()) {
-      console.error('Invalid sub node name');
-      return;
-    }
-
-    if (this.localService.nodeExists(subNodeName, parentNode.children || [])) {
-      console.error('Subnode name already exists under this parent');
-      return;
-    }
-
     const newSubNode = {
       name: subNodeName,
       parent: parentNodeId
@@ -234,27 +246,33 @@ export class AppComponent implements OnInit {
 
     this.localService.addSubNode(newSubNode).subscribe({
       next: (response) => {
-        console.log('Response from addSubNode:', response); // Log the response
         const addedNode = response.data;
         const newNode: TreeNode = {
           id: addedNode.id,
           name: addedNode.attributes.name,
-          N_ID: addedNode.attributes.N_ID, // optional
-          children: addedNode.attributes.children || [] //optional
+          N_ID: addedNode.attributes.N_ID,
+          parent: parentNodeId,
+          children: addedNode.attributes.children?.data.map((child: any) => ({
+            id: child.id,
+            name: child.attributes.name,
+            N_ID: child.attributes.N_ID,
+            parent: addedNode.id,
+            children: child.attributes.children || []
+          })) || []
         };
-        if(parentNode){
-          parentNode.children = parentNode?.children || []
+        const parentNode = this.findNodeById(this.nodes, parentNodeId);
+        if (parentNode) {
+          parentNode.children = parentNode.children || [];
+          parentNode.children.push(newNode);
+          this.dataSource.data = [...this.dataSource.data];
         }
-        else{
-          console.log("test")//test
-        }
-        parentNode?.children?.push(newNode); // Add the new subnode to the parent's children array
-        this.dataSource.data = [...this.dataSource.data]; // Refresh the data source
       },
       error: (err) => console.error('Error adding sub node:', err)
     });
-
   }
+
+
+
   findNodeById(nodes: TreeNode[], id: number): TreeNode | undefined {
     for (let node of nodes) {
       if (node.id === id) {

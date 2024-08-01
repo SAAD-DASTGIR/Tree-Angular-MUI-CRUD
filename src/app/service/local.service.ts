@@ -89,8 +89,9 @@ export class LocalService {
   constructor(private http: HttpClient) {}
 
   getNodes(): Observable<any> {
-    return this.http.get(this.apiUrl);
+    return this.http.get<any>(`${this.apiUrl}?populate=parent`);
   }
+
 
   getTreeData(): Observable<TreeNode[]> {
     return this.http.get<TreeNode[]>(`${this.apiUrl}?populate=*`);
@@ -113,18 +114,18 @@ export class LocalService {
     return this.http.post<any>(this.apiUrl, { data: node });
   }
 
-  addSubNode(subNode: { name: string; parent: number }): Observable<any> {
-    const payload = {
-      data: {
-        name: subNode.name,
-        parent: {
-          id: subNode.parent
-        }
-      }
-    };
-    console.log('Payload for addSubNode:', payload); // Log the payload
-    return this.http.post<any>(this.apiUrl, payload);
-  }
+ addSubNode(subNode: { name: string; parent: number }): Observable<any> {
+  const payload = {
+    data: {
+      name: subNode.name,
+      parent: subNode.parent
+    }
+  };
+  console.log('Payload for addSubNode:', payload);
+  return this.http.post<any>(this.apiUrl, payload);
+}
+
+
 
 
   moveNode(nodeId: number, newParentId: number): Observable<FoodNode> {
