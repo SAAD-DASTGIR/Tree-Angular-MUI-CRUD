@@ -60,6 +60,13 @@ export class LocalService {
   }
 
   moveNode(nodeId: number, newParentId: number): Observable<FoodNode> {
+    const payload = {
+      // payload involves data whcih have name of node and id of parent node
+      data: {
+        name: nodeId,
+        parent: newParentId,
+      },
+    };
     return this.http.put<FoodNode>(`${this.apiUrl}/${nodeId}`, {
       parent: newParentId,
     });

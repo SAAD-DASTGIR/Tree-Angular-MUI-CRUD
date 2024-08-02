@@ -49,7 +49,7 @@ export class AppComponent implements OnInit {
   newNodeName: string = ''; // for adding new node of type string
   nodes: TreeNode[] = []; // node is of type array using interface of treenode
 
-  treeControl = new FlatTreeControl<any>(
+  treeControl = new FlatTreeControl<ExampleFlatNode|any|FoodNode|TreeNode>(
     (node) => node.level,
     (node) => node.expandable
   );
@@ -70,6 +70,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchNodes(); // on page intializes fetch the whole tree node
+    this.treeControl.expandAll()
   }
 
   hasChild = (_: number, node: any) => node.expandable; // variable to findout if child exists or not
@@ -147,20 +148,22 @@ export class AppComponent implements OnInit {
   }
 
   deleteTreeNode(id: number): void {
-    const nodeToDelete:any = this.findNodeById(this.nodes, id);
+    const nodeToDelete: any = this.findNodeById(this.nodes, id);
 
     // Check if the node exists
     if (!nodeToDelete) {
-        alert('Node not found');
-        return;
+      alert('Nahhhhh..!!! Node not found');
+      return;
     }
 
     // Confirm deletion if the node has children
     if (nodeToDelete.children && nodeToDelete.children.length > 0) {
-        const confirmDelete = confirm('This node has children. Are you sure you want to delete it and all its children?');
-        if (!confirmDelete) {
-            return;
-        }
+      const confirmDelete = confirm(
+        'Selected node has children. Are you sure you want to delete it and all its children?'
+      );
+      if (!confirmDelete) {
+        return;
+      }
     }
 
     // Recursively delete all children
@@ -168,29 +171,29 @@ export class AppComponent implements OnInit {
 
     // Proceed to delete the parent node
     this.localService.deleteTreeNode(id).subscribe({
-        next: () => this.fetchNodes(),
-        error: (err) => console.error('Error deleting node:', err),
+      next: () => this.fetchNodes(),
+      error: (err) => console.error('Error deleting node:', err),
     });
-}
+  }
 
-// Helper function to delete all children recursively
-private deleteChildren(children: Node[]|any): void {
+  // Helper function to delete all children recursively
+  private deleteChildren(children: Node[] | any): void {
     for (const child of children) {
-        this.deleteChildren(child.children); // Recursively delete child nodes
-        this.localService.deleteTreeNode(child.id).subscribe({
-            next: () => console.log(`Deleted child node with id: ${child.id}`),
-            error: (err) => console.error('Error deleting child node:', err),
-        });
+      this.deleteChildren(child.children); // Recursively delete child nodes
+      this.localService.deleteTreeNode(child.id).subscribe({
+        next: () => console.log(`Deleted child node with id: ${child.id}`),
+        error: (err) => console.error('Error deleting child node:', err),
+      });
     }
-}
+  }
   editNode(node: ExampleFlatNode): void {
     this.selectedNode = node;
     this.editNodeName = node.name;
   }
 
   updateNodeName(node: any, newName: string) {
-    if (this.localService.nodeExists(newName, null)) {
-      console.error('Node name already exists');
+    if (this.localService.nodeExists(newName, node)) {
+      alert('Node name already exists');
       return;
     }
 
@@ -201,7 +204,12 @@ private deleteChildren(children: Node[]|any): void {
     };
 
     this.localService.updateNode(node.id, updatedNode).subscribe({
+
       next: (data: any) => {
+        const confirmation=confirm("Do you really want to rename Node?")
+        if(!confirmation){
+           return
+        }
         console.log('Node updated successfully:', data);
         node.name = newName;
         this.fetchNodes();
