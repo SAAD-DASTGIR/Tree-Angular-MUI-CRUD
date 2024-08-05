@@ -305,7 +305,7 @@ import { FlatTreeControl } from '@angular/cdk/tree';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { LocalService } from './service/local.service';
 
-interface TreeNode {
+interface TreeNode { // interface required for strapi to make hierical structure
   id: number;
   name: string|any;
   N_ID?: string | null;
@@ -318,7 +318,7 @@ interface ExampleFlatNode {
   name: string;
   level: number;
 }
-const processNode = (node: any): TreeNode => ({
+const processNode = (node: any): TreeNode => ({ //function to map node on frontend
   id: node.id || null,
   name: node.attributes?.name || '',
   N_ID: node.attributes?.N_ID || null,
@@ -335,13 +335,12 @@ const processNode = (node: any): TreeNode => ({
 export class AppComponent implements OnInit {
   private _transformer = (node: TreeNode, level: number): ExampleFlatNode => {
     return {
-      expandable: !!node.children && node.children.length > 0,
+      expandable: !!node.children && node.children.length > 0, // expand if length of child is greater than zero
       id: node.id,
       name: node.name,
       level: level,
     };
   };
-
 
   treeFlattener = new MatTreeFlattener(
     this._transformer,
@@ -355,7 +354,7 @@ export class AppComponent implements OnInit {
     return parseInt(value, 10); // integer conversion not decimal
   }
   newNodeName: string = '';
-  nodes: TreeNode[] = [];
+  nodes: TreeNode[] = []; // array of nodes used both as parent and child
 
   treeControl = new FlatTreeControl<any|ExampleFlatNode>(
     (node) => node.level,
@@ -364,22 +363,22 @@ export class AppComponent implements OnInit {
   dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
 
   selectedNode: ExampleFlatNode | null = null;
-  editNodeName: string = '';
+  editNodeName: string = ''; // varaible to store edited node name
 
   constructor(private localService: LocalService) {}
 
-  hasChild = (_: number, node: ExampleFlatNode) => node.expandable;
+  hasChild = (_: number, node: ExampleFlatNode) => node.expandable; // if child then expand
 
   ngOnInit(): void {
-    this.fetchNodes();
+    this.fetchNodes(); // fetch when app intialzes
     // this.treeControl.expandAll()
   }
 
   fetchNodes(): void {
     this.localService.getNodes().subscribe({
       next: (response) => {
-        console.log('API Response:', response);
-        if (response && response.data) {
+        console.log('API Response:', response); // structured responce from strapi
+        if (response && response.data) { // if we get response then map
           this.nodes = response.data?.map((node: any) => processNode(node));
           console.log('Processed Nodes:', this.nodes);
           this.dataSource.data = this.nodes;
@@ -396,19 +395,19 @@ export class AppComponent implements OnInit {
 
   addTreeNode(name: string): void {
     if (name.trim() !== '') {
-      const payload = {
+      const payload = { // payload requires because of data from strapi
         data: {
           name: name,
         },
       };
-      // if (this.localService.nodeExistsinParent(name, this.nodes)) {
-      //   alert('Same name as Sibling is present');
-      //   return;
-      // }
+      if (this.localService.nodeExistsinParent(name, this.nodes)) {
+        alert('Same name as Sibling is present');
+        return;
+      }
 
       this.localService.addTreeNode(payload).subscribe({
         next: () => {
-          this.fetchNodes();
+          this.fetchNodes(); //after add display the fetch nodes
         },
         error: (err) => console.error('Error adding node:', err),
       });
@@ -418,9 +417,9 @@ export class AppComponent implements OnInit {
   }
 
   deleteTreeNode(id: number): void {
-    const nodeToDelete = this.findNodeById(this.nodes, id);
+    const nodeToDelete = this.findNodeById(this.nodes, id); // find node to be deleted
 
-    if (!nodeToDelete) {
+    if (!nodeToDelete) { // if not present then return
       alert('Node not found');
       return;
     }
@@ -464,12 +463,23 @@ export class AppComponent implements OnInit {
   }
 
   updateNodeName(node: ExampleFlatNode|any, newName: string) {
-    const updatedNode = {
+    const updatedNode = { // object forr updated node
       id: node.id,
       name: newName,
       parent: node.parent,
     };
-
+    // if (this.localService.nodeExistsinParent(newName, this.nodes)) { // check in main parent do not chnage it
+    //   alert('Are You Blind parent? Name you added also exists as Sibling ');
+    //   return;
+    // }
+    // if (!this.localService.nodeExistsinParent(newName, this.nodes)) {
+    //   alert('Same name as Sibling is present');
+    //   return;
+    // }
+    // if(this.localService.nodeExists(newName,this.nodes)){
+    //   alert('Are you Blind children? Name you add also exsts as Sibling')
+    //   return
+    // }
     this.localService.updateNode(node.id, updatedNode).subscribe({
       next: () => {
         const confirmation = confirm("Do you really want to rename Node?");
@@ -483,17 +493,17 @@ export class AppComponent implements OnInit {
     });
   }
 
-  cancelEdit(): void {
+  cancelEdit(): void { // usage in future for yes no option
     this.selectedNode = null;
   }
 
-  addSubNode(subNodeName: string, parentNodeId: number): void {
-    if (subNodeName.trim() === '' || isNaN(parentNodeId)) {
+  addSubNode(subNodeName: string, parentNodeId: number): void { // function to add subnode
+    if (subNodeName.trim() === '' || isNaN(parentNodeId)) { // if empty name or node id is other than number then return
       alert('Error: Invalid input.');
       return;
     }
 
-    const subNode = {
+    const subNode = {// object for storing subnode
       name: subNodeName,
       parent: parentNodeId,
     };
@@ -514,7 +524,7 @@ export class AppComponent implements OnInit {
     });
   }
 
-  findNodeById(nodes: TreeNode[], id: number|any): TreeNode | null {
+  findNodeById(nodes: TreeNode[], id: number|any): TreeNode | null { // function to find node by its id
     for (const node of nodes) {
       if (node.id === id) {
         return node;
@@ -527,7 +537,7 @@ export class AppComponent implements OnInit {
     }
     return null;
   }
-  moveNode(nodeId: number, newParentId: number) {
+  moveNodetest(nodeId: number, newParentId: number) {
     const findNode = (nodes: TreeNode[], id: number): TreeNode | null => {
       for (const node of nodes) {
         if (node.id === id) {
@@ -577,6 +587,13 @@ export class AppComponent implements OnInit {
       this.dataSource.data = this.nodes;
       this.treeControl.expand(newParent);
     }
+  }
+  moveNode(nodeId: number, newParentId: number): void {
+
+    this.localService.moveNode(nodeId, newParentId).subscribe({
+      next: () => this.fetchNodes(),
+      error: (err) => console.error('Error moving node:', err),
+    });
   }
 }
 
