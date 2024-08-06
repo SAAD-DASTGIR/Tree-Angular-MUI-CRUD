@@ -255,77 +255,84 @@ export class AppComponent implements OnInit {
     }
     return null;
   }
-  moveNodetest(nodeId: number, newParentId: number) {
-    const findNode = (nodes: TreeNode[], id: number): TreeNode | null => {
-      for (const node of nodes) {
-        if (node.id === id) {
-          return node;
-        } else if (node.children) {
-          const result = findNode(node.children, id);
-          if (result) {
-            return result;
-          }
-        }
-      }
-      return null;
-    };
+  // moveNodetest(nodeId: number, newParentId: number) {
+  //   const findNode = (nodes: TreeNode[], id: number): TreeNode | null => {
+  //     for (const node of nodes) {
+  //       if (node.id === id) {
+  //         return node;
+  //       } else if (node.children) {
+  //         const result = findNode(node.children, id);
+  //         if (result) {
+  //           return result;
+  //         }
+  //       }
+  //     }
+  //     return null;
+  //   };
 
-    const findParent = (nodes: TreeNode[], id: number): TreeNode | null => {
-      for (const node of nodes) {
-        if (node.children) {
-          for (const child of node.children) {
-            if (child.id === id) {
-              return node;
-            }
-          }
-          const result = findParent(node.children, id);
-          if (result) {
-            return result;
-          }
-        }
-      }
-      return null;
-    };
+  //   const findParent = (nodes: TreeNode[], id: number): TreeNode | null => {
+  //     for (const node of nodes) {
+  //       if (node.children) {
+  //         for (const child of node.children) {
+  //           if (child.id === id) {
+  //             return node;
+  //           }
+  //         }
+  //         const result = findParent(node.children, id);
+  //         if (result) {
+  //           return result;
+  //         }
+  //       }
+  //     }
+  //     return null;
+  //   };
 
-    const nodeToMove = findNode(this.nodes, nodeId);
-    const newParent = findNode(this.nodes, newParentId);
+  //   const nodeToMove = findNode(this.nodes, nodeId);
+  //   const newParent = findNode(this.nodes, newParentId);
 
-    if (nodeToMove && newParent) {
-      const currentParent = findParent(this.nodes, nodeId);
-      if (currentParent) {
-        currentParent.children = currentParent.children!.filter(
-          (node) => node.id !== nodeId
-        );
-      } else {
-        this.nodes = this.nodes.filter((node) => node.id !== nodeId);
-      }
+  //   if (nodeToMove && newParent) {
+  //     const currentParent = findParent(this.nodes, nodeId);
+  //     if (currentParent) {
+  //       currentParent.children = currentParent.children!.filter(
+  //         (node) => node.id !== nodeId
+  //       );
+  //     } else {
+  //       this.nodes = this.nodes.filter((node) => node.id !== nodeId);
+  //     }
 
-      if (!newParent.children) {
-        newParent.children = [];
-      }
-      newParent.children.push(nodeToMove);
-      this.dataSource.data = this.nodes;
-      this.treeControl.expand(newParent);
-    }
-  }
+  //     if (!newParent.children) {
+  //       newParent.children = [];
+  //     }
+  //     newParent.children.push(nodeToMove);
+  //     this.dataSource.data = this.nodes;
+  //     this.treeControl.expand(newParent);
+  //   }
+  // }
   moveNode(nodeId: number, newParentId: number): void {
-    const parent = this.findNodeById(this.nodes, newParentId);
-    const child = this.findNodeById(this.nodes, nodeId);
-    console.log('test move node ', parent);
-    console.log(child);
-    if (parent?.id === child?.id) {
-      alert('Entered Invalid Move IDs');
+    const confirmation = confirm(
+      'Do you really want to move the selected node to the new parent node?'
+    );
+    if (!confirmation) {
       return;
     }
 
-    if (parent?.id === child?.parent) {
-      alert('Testing move');
+    if (nodeId === newParentId) {
+      alert('Error: A node cannot be moved to itself.');
       return;
     }
 
     this.localService.moveNode(nodeId, newParentId).subscribe({
-      next: () => this.fetchNodes(),
-      error: (err) => console.error('Error moving node:', err),
+      next: (response) => {
+        console.log('Node moved successfully:', response);
+        this.fetchNodes();
+      },
+      error: (err) => alert("Parent Cannot be Child of its Children"),
+
     });
   }
+
+  toggleNode(node: ExampleFlatNode): void {
+    this.treeControl.toggle(node);
+  }
 }
+

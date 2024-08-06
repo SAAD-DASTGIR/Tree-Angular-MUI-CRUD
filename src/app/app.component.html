@@ -2,47 +2,92 @@
   <span>Tree CRUD Operations</span>
   <span class="example-spacer"></span>
 </mat-toolbar>
-<br>
+<br />
 <div class="node">
   <div class="newnode">
     <mat-form-field (keyup.enter)="addTreeNode(newNodeName.value)">
-      <input matInput #newNodeName placeholder="New node name">
+      <input matInput #newNodeName placeholder="New node name" />
     </mat-form-field>
   </div>
   <div class="tree-btn">
-    <button mat-raised-button color="primary" (click)="addTreeNode(newNodeName.value)">Add Node</button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="addTreeNode(newNodeName.value)"
+    >
+      Add Node
+    </button>
   </div>
 </div>
 <div class="subnode">
   <div class="subnode1">
-    <mat-form-field (keyup.enter)="addSubNode(subNodeName.value, parseStringToInt(parentNodeId.value))">
-      <input matInput #parentNodeId placeholder="Parent node ID">
+    <mat-form-field
+      (keyup.enter)="
+        addSubNode(subNodeName.value, parseStringToInt(parentNodeId.value))
+      "
+    >
+      <input matInput #parentNodeId placeholder="Parent node ID" />
     </mat-form-field>
   </div>
   <div class="subnode2">
-    <mat-form-field (keyup.enter)="addSubNode(subNodeName.value, parseStringToInt(parentNodeId.value))">
-      <input matInput #subNodeName placeholder="Sub node name">
+    <mat-form-field
+      (keyup.enter)="
+        addSubNode(subNodeName.value, parseStringToInt(parentNodeId.value))
+      "
+    >
+      <input matInput #subNodeName placeholder="Sub node name" />
     </mat-form-field>
   </div>
-  <button mat-raised-button color="primary" (click)="addSubNode(subNodeName.value, parseStringToInt(parentNodeId.value))">Add Sub Node</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="
+      addSubNode(subNodeName.value, parseStringToInt(parentNodeId.value))
+    "
+  >
+    Add Sub Node
+  </button>
 </div>
 
 <div class="move-node">
   <div class="move-node2">
     <div class="move-div">
-
-      <mat-form-field (keyup.enter)="moveNode(parseStringToInt(nodeId.value), parseStringToInt(newParentId.value))">
-        <input matInput #nodeId placeholder="Node ID to move">
+      <mat-form-field
+        (keyup.enter)="
+          moveNode(
+            parseStringToInt(nodeId.value),
+            parseStringToInt(newParentId.value)
+          )
+        "
+      >
+        <input matInput #nodeId placeholder="Node ID to move" />
       </mat-form-field>
     </div>
 
     <div class="move-div">
-
-      <mat-form-field (keyup.enter)="moveNode(parseStringToInt(nodeId.value), parseStringToInt(newParentId.value))">
-        <input matInput #newParentId placeholder="New parent node ID">
+      <mat-form-field
+        (keyup.enter)="
+          moveNode(
+            parseStringToInt(nodeId.value),
+            parseStringToInt(newParentId.value)
+          )
+        "
+      >
+        <input matInput #newParentId placeholder="New parent node ID" />
       </mat-form-field>
     </div>
-    <button mat-raised-button color="primary" (click)="moveNode(parseStringToInt(nodeId.value), parseStringToInt(newParentId.value))">Move Node</button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="
+        moveNode(
+          parseStringToInt(nodeId.value),
+          parseStringToInt(newParentId.value)
+        )
+      "
+    >
+      Move Node
+    </button>
   </div>
 </div>
 <!--
@@ -56,7 +101,7 @@
   <!-- Define the root node template -->
   <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
     <button mat-icon-button disabled></button>
-    ID = {{node.id}} Value = {{node.name}}
+    ID = {{ node.id }} Value = {{ node.name }}
     <button mat-icon-button color="warn" (click)="deleteTreeNode(node.id)">
       <mat-icon>delete</mat-icon>
     </button>
@@ -67,12 +112,16 @@
 
   <!-- Define the child node template -->
   <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
-    <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'Toggle ' + node.name">
+    <button
+      mat-icon-button
+      matTreeNodeToggle
+      [attr.aria-label]="'Toggle ' + node.name"
+    >
       <mat-icon color="primary" class="mat-icon-rtl-mirror">
-        {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+        {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
       </mat-icon>
     </button>
-    ID = {{node.id}} Value = {{node.name}}
+    ID = {{ node.id }} Value = {{ node.name }}
     <button mat-icon-button color="warn" (click)="deleteTreeNode(node.id)">
       <mat-icon>delete</mat-icon>
     </button>
@@ -82,11 +131,16 @@
   </mat-tree-node>
 </mat-tree>
 
-
 <div *ngIf="selectedNode">
-  <mat-form-field (keyup.enter)="updateNodeName(selectedNode,editNodeName)">
-    <input matInput [(ngModel)]="editNodeName" placeholder="Edit node name">
+  <mat-form-field (keyup.enter)="updateNodeName(selectedNode, editNodeName)">
+    <input matInput [(ngModel)]="editNodeName" placeholder="Edit node name" />
   </mat-form-field>
-  <br>
-  <button mat-raised-button color="primary" (click)="updateNodeName(selectedNode,editNodeName)">Edit Node</button>
+  <br />
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="updateNodeName(selectedNode, editNodeName)"
+  >
+    Edit Node
+  </button>
 </div>
