@@ -90,15 +90,13 @@
     </button>
   </div>
 </div>
-<!--
-<div class="filter">
-  <mat-form-field>
-    <input matInput (input)="applyFilter($event.target.value)" placeholder="Filter nodes">
-  </mat-form-field>
-</div> -->
+<div class="test">
 
+  <mat-form-field>
+    <mat-label>Filter</mat-label>
+    <input matInput (input)="applyFilter($event)" placeholder="Filter nodes">
+  </mat-form-field>
 <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
-  <!-- Define the root node template -->
   <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
     <button mat-icon-button disabled></button>
     ID = {{ node.id }} Value = {{ node.name }}
@@ -110,14 +108,10 @@
     </button>
   </mat-tree-node>
 
-  <!-- Define the child node template -->
+
   <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
-    <button
-      mat-icon-button
-      matTreeNodeToggle
-      [attr.aria-label]="'Toggle ' + node.name"
-    >
-      <mat-icon color="primary" class="mat-icon-rtl-mirror">
+    <button mat-icon-button (click)="toggleNode(node)" [attr.aria-label]="'Toggle ' + node.name">
+      <mat-icon>
         {{ treeControl.isExpanded(node) ? "expand_more" : "chevron_right" }}
       </mat-icon>
     </button>
@@ -144,3 +138,20 @@
     Edit Node
   </button>
 </div>
+
+</div>
+
+
+<!-- <div *ngIf="selectedNode">
+  <mat-form-field (keyup.enter)="updateNodeName(selectedNode, editNodeName)">
+    <input matInput [(ngModel)]="editNodeName" placeholder="Edit node name" />
+  </mat-form-field>
+  <br />
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="updateNodeName(selectedNode, editNodeName)"
+  >
+    Edit Node
+  </button>
+</div> -->

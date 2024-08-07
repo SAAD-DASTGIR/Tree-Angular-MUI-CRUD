@@ -1,14 +1,7 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-interface TreeNode {
-  id: number;
-  name: string | any;
-  N_ID?: string | null;
-  children?: TreeNode[];
-  parent?: number | null;
-}
 @Injectable({
   providedIn: 'root',
 })
@@ -21,26 +14,43 @@ export class LocalService {
     return this.http.get<any>(`${this.apiUrl}?populate=parent`);
   }
 
+  getChildrenNodes(parentId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/children/${parentId}`);
+  }
+
   addTreeNode(payload: any): Observable<any> {
-    return this.http.post(this.apiUrl, payload);
-  }
-
-  updateNode(id: number, node: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/${id}`, { data: node });
-  }
-
-  deleteTreeNode(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
-
-  addSubNode(subNode: { name: string; parent: number }): Observable<any> {
-    const payload = {
-      data: {
-        name: subNode.name,
-        parent: subNode.parent,
-      },
-    };
     return this.http.post<any>(this.apiUrl, payload);
+  }
+
+  getFilteredNodes(filter: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?filters[name][$contains]=${filter}`);
+  }
+  deleteTreeNode(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}`);
+  }
+
+  updateNode(id: number, payload: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}`, { data: payload });
+  }
+
+  addSubNode(subNode: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl, { data: subNode });
+  }
+
+  nodeExists(name: string, node: any): boolean {
+    if (!node || !node.children) {
+      return false;
+    }
+    return node.children.some((child: any) => child.name === name);
+  }
+
+  nodeExistsinParent(name: string, nodes: any[]): boolean {
+    for (const node of nodes) {
+      if (node.name === name) {
+        return true;
+      }
+    }
+    return false;
   }
 
 
@@ -52,25 +62,4 @@ export class LocalService {
     return this.http.post<any>(`${this.apiUrl}/move`, payload);
   }
 
-  nodeExists(name: string, parentNode: TreeNode[] | null | any): boolean {
-    if (!parentNode || !parentNode.children) {
-      return false;
-    }
-
-    for (let node of parentNode.children) {
-      if (node.name === name) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  nodeExistsinParent(name: string, nodes: TreeNode[] | any): boolean {
-    for (let node of nodes) {
-      if (node.name === name) {
-        return true;
-      }
-    }
-    return false;
-  }
 }

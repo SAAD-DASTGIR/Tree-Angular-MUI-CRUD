@@ -25,7 +25,7 @@ import { CommonModule } from '@angular/common';
   imports: [
     BrowserModule,HttpClientModule,MatTreeModule,MatToolbarModule,MatInputModule,
     MatIconModule,MatProgressBarModule, BrowserAnimationsModule,MatFormFieldModule,
-    MatButtonModule,FormsModule,CommonModule
+    MatButtonModule,FormsModule,CommonModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
