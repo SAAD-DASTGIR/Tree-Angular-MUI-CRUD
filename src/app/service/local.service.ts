@@ -23,7 +23,9 @@ export class LocalService {
   }
 
   getFilteredNodes(filter: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}?filters[name][$contains]=${filter}`);
+    return this.http.get<any>(
+      `${this.apiUrl}?filters[name][$contains]=${filter}`
+    );
   }
   deleteTreeNode(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`);
@@ -37,22 +39,18 @@ export class LocalService {
     return this.http.post<any>(this.apiUrl, { data: subNode });
   }
 
+
   nodeExists(name: string, node: any): boolean {
     if (!node || !node.children) {
       return false;
     }
-    return node.children.some((child: any) => child.name === name);
+    return node.children.some((child: any) => child.name.trim().toLowerCase() === name.trim().toLowerCase());
   }
 
+  // Check for sibling node existence in the parent node list
   nodeExistsinParent(name: string, nodes: any[]): boolean {
-    for (const node of nodes) {
-      if (node.name === name) {
-        return true;
-      }
-    }
-    return false;
+    return nodes.some((node: any) => node.name.trim().toLowerCase() === name.trim().toLowerCase());
   }
-
 
   moveNode(nodeId: number, newParentId: number): Observable<any> {
     const payload = {
@@ -61,5 +59,4 @@ export class LocalService {
     };
     return this.http.post<any>(`${this.apiUrl}/move`, payload);
   }
-
 }
