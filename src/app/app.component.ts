@@ -454,7 +454,12 @@ export class AppComponent implements OnInit {
           const filteredNodes = this.filterNodes(allNodes, filterValue); // Local filter for hierarchy
           this.filteredDataSource = filteredNodes;
           this.dataSource.data = this.filteredDataSource;
-          this.treeControl.expandAll();
+          this.treeControl.expandAll()
+          if(filterValue===""){
+            const flattenedData = this.flattenTree(this.nodes);
+            this.dataSource.data = flattenedData;
+          }
+
         } else {
           console.error('Invalid response format:', response);
         }
