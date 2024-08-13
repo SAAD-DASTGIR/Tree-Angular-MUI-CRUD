@@ -10,9 +10,9 @@
 
 //   constructor(private http: HttpClient) {}
 
-  // getNodes(): Observable<any> {
-  //   return this.http.get<any>(`${this.apiUrl}?populate=*`);
-  // }
+// getNodes(): Observable<any> {
+//   return this.http.get<any>(`${this.apiUrl}?populate=*`);
+// }
 
 //   getChildrenNodes(parentId: number): Observable<any> {
 //     return this.http.get<any>(`${this.apiUrl}/children/${parentId}`);
@@ -39,7 +39,6 @@
 //     return this.http.post<any>(this.apiUrl, { data: subNode });
 //   }
 
-
 //   nodeExists(name: string, node: any): boolean {
 //     if (!node || !node.children) {
 //       return false;
@@ -61,8 +60,6 @@
 //   }
 // }
 
-
-
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -76,13 +73,13 @@ export class LocalService {
   constructor(private http: HttpClient) {}
 
   getNodes(page: number = 1, pageSize: number = 10): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}?page=${page}&pageSize=${pageSize}&populate=*`);
+    return this.http.get<any>(
+      `${this.apiUrl}?page=${page}&pageSize=${pageSize}&populate=*`
+    );
   }
   getFilterNodes(filter: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/findfull?populate=*`);
   }
-
-
   getChildrenNodes(parentId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/children/${parentId}`);
   }
@@ -92,7 +89,9 @@ export class LocalService {
   }
 
   getFilteredNodes(filter: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}?filters[name][$contains]=${filter}`);
+    return this.http.get<any>(
+      `${this.apiUrl}?filters[name][$contains]=${filter}`
+    );
   }
   deleteTreeNode(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`);
@@ -129,6 +128,4 @@ export class LocalService {
     };
     return this.http.post<any>(`${this.apiUrl}/move`, payload);
   }
-
 }
-
