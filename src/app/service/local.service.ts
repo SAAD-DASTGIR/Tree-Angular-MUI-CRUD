@@ -82,6 +82,7 @@ export class LocalService {
     return this.http.get<any>(`${this.apiUrl}/findfull?populate=*`);
   }
 
+
   getChildrenNodes(parentId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/children/${parentId}`);
   }

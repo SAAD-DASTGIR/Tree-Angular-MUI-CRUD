@@ -347,29 +347,35 @@ import { FlatTreeControl } from '@angular/cdk/tree';
 import { MatTreeFlatDataSource, MatTreeFlattener } from '@angular/material/tree';
 import { LocalService } from './service/local.service';
 
-interface TreeNode { // Interface required by strapi
-  id: number; // to uniquly identify
+interface TreeNode {
+  id: number;
   name: string;
-  N_ID?: string | null; // not used anywhere
+  N_ID?: string | null;
   children?: TreeNode[];
   parent?: number | null;
+  haschild: boolean;
 }
 
+
 interface ExampleFlatNode { // interface to use i mattree
-  expandable: boolean|any;
+  expandable: boolean;
   id: number;
   name: string;
   level: number;
-  children : ExampleFlatNode[]
+  haschild: boolean;
+  children ?: ExampleFlatNode[]
 }
 
-const processNode = (node: any): TreeNode => ({ // to visuaize the tree structure
+const processNode = (node: any): TreeNode => ({
   id: node.id || null,
   name: node.attributes?.name || '',
   N_ID: node.attributes?.N_ID || null,
   parent: node.attributes?.parent?.data?.id || null,
-  children: node.attributes?.children?.map((child: any) => processNode(child)) || [], // recursivily process
+  haschild: node.attributes?.hasChild ,  // Use hasChild from backend
+  children: node.attributes?.children?.map((child: any) => processNode(child)) || [],
 });
+
+
 
 @Component({
   selector: 'app-root',
@@ -377,12 +383,15 @@ const processNode = (node: any): TreeNode => ({ // to visuaize the tree structur
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit {
-  private _transformer = (node: TreeNode, level: number): ExampleFlatNode|any => ({ // transform into parent and children nodes
-    expandable: true,
+  private _transformer = (node: TreeNode, level: number): ExampleFlatNode => ({
+    expandable: !!node.haschild,  // Check if haschild is true
     id: node.id,
     name: node.name,
     level: level,
+    haschild: node.haschild
   });
+
+
 
   treeFlattener = new MatTreeFlattener( // flattener to transform
     this._transformer,
@@ -526,9 +535,11 @@ export class AppComponent implements OnInit {
       // Create a flat node with the current level
       const flatNode: ExampleFlatNode = {
         id: node.id,
+        haschild: node.haschild,
+
         name: node.name,
         level: level,
-        expandable: node.children && node.children.length > 0,
+        expandable:false,
         children: [] // Initialize as an empty array
       };
 
@@ -548,9 +559,13 @@ export class AppComponent implements OnInit {
   }
 
   toggleNode(node: ExampleFlatNode): void {
+    if (!node.expandable) {
+      return;
+    }
     const parentNode = this.findNodeById(this.nodes, node.id);
     if (parentNode && (!parentNode.children || parentNode.children.length === 0)) {
       this.fetchChildrenNodes(node);
+      this.treeControl.toggle(node)
     } else {
       this.treeControl.toggle(node);
       // this.expandNodes(this.expandedNodeIds); // Reapply expanded nodes
