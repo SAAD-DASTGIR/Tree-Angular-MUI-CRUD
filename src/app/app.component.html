@@ -110,10 +110,14 @@
 
 
   <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
-    <button mat-icon-button (click)="toggleNode(node)" [attr.aria-label]="'Toggle ' + node.name">
-      <mat-icon>
-        {{ treeControl.isExpanded(node) ? "chevron_right" : "chevron_right" }}
-      </mat-icon>
+    <button
+      mat-icon-button
+      (click)="toggleNode(node)"
+      [attr.aria-label]="'Toggle ' + node.name"
+    >
+    <mat-icon>
+      {{ expandedNodeIds.has(node.id) ? 'expand_more' : 'chevron_right' }}
+    </mat-icon>
     </button>
     ID = {{ node.id }} Value = {{ node.name }}
     <button mat-icon-button color="warn" (click)="deleteTreeNode(node.id)">

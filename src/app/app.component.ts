@@ -10,7 +10,7 @@ interface TreeNode {
   name: string;
   N_ID?: string | null;
   children?: TreeNode[];
-  parent?: number | null;
+  parent: number | null |any;
   haschild?: boolean;
 }
 interface ExampleFlatNode {
@@ -21,6 +21,7 @@ interface ExampleFlatNode {
   level: number;
   haschild: boolean | any;
   children?: ExampleFlatNode[];
+  parent: any
 }
 
 const processNode = (node: any): TreeNode => ({
@@ -44,6 +45,7 @@ export class AppComponent implements OnInit {
     name: node.name,
     level: level,
     haschild: node.haschild,
+    parent:node.parent
   });
 
   treeFlattener = new MatTreeFlattener( // flattener to transform
@@ -55,7 +57,9 @@ export class AppComponent implements OnInit {
 
   newNodeName: string = ''; // used in edit functionality to assign name
   nodes: TreeNode[] = []; // nodes of array in tree structure
-  expandedNodeIds: Set<number> = new Set(); // used bca to get parent id and fetch children
+  expandedNodeId: number | null = null; // Add this line
+  expandedNodeIds: Set<number> = new Set(); // Track expanded node IDs
+
 
   treeControl = new FlatTreeControl<ExampleFlatNode | any>( // to expand and collaspe
     (node) => node.level,
@@ -196,7 +200,7 @@ export class AppComponent implements OnInit {
       const flatNode: ExampleFlatNode = {
         id: node.id,
         haschild: node.haschild,
-
+        parent:node.parent,
         name: node.name,
         level: level,
         expandable: false,
@@ -226,18 +230,44 @@ export class AppComponent implements OnInit {
     if (!node.expandable) {
       return;
     }
+
     const parentNode = this.findNodeById(this.nodes, node.id);
     if (
       parentNode &&
       (!parentNode.children || parentNode.children.length === 0)
     ) {
       this.fetchChildrenNodes(node);
+      this.expandedNodeId = node.id; // Set the current expanded node ID
       this.treeControl.toggle(node);
     } else {
       this.treeControl.toggle(node);
-      // this.expandNodes(this.expandedNodeIds); // Reapply expanded nodes
+      if (this.treeControl.isExpanded(node)) {
+        this.expandedNodeId = node.id; // Set the expanded node ID
+      } else {
+        this.expandedNodeId = null; // Reset if collapsing
+      }
+    }
+
+    if (this.expandedNodeIds.has(node.id)) { // check in all where we track
+      this.expandedNodeIds.delete(node.id);
+      this.treeControl.collapse(node);
+    } else {
+      this.expandedNodeIds.add(node.id);
+      this.treeControl.expand(node);
+
+      // Ensure all parent nodes are expanded
+      let parentNode = this.findNodeById(this.nodes, node.parent);
+      while (parentNode) {
+        this.expandedNodeIds.add(parentNode.id);
+        const flatNode = this.treeControl.dataNodes.find(n => n.id === parentNode!.id);
+        if (flatNode) {
+          this.treeControl.expand(flatNode);
+        }
+        parentNode = this.findNodeById(this.nodes, parentNode.parent);
+      }
     }
   }
+
 
   addTreeNode(name: string): void {
     if (name.trim() !== '') {
