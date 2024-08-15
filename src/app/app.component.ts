@@ -264,11 +264,12 @@ export class AppComponent implements OnInit {
       const flatNode: ExampleFlatNode = {
         id: node.id,
         haschild: node.haschild,
-        parent: node.parent,
+
         name: node.name,
         level: level,
         expandable: false,
-        children: [], // Initialize as an empty array
+        children: [],
+        parent: undefined
       };
 
       // Add the node's ID to the set to avoid duplicates
@@ -347,6 +348,7 @@ export class AppComponent implements OnInit {
 
       this.localService.addTreeNode(payload).subscribe({
         next: () => {
+          this.expandedNodeIds.clear();
           this.fetchNodes();
         },
         error: (err) => console.error('Error adding node:', err),
@@ -355,7 +357,6 @@ export class AppComponent implements OnInit {
       alert("ERROR: Node Already Exists Or You've entered Invalid Node");
     }
   }
-
   deleteTreeNode(id: number): void {
     const nodeToDelete = this.findNodeById(this.nodes, id);
 
@@ -376,7 +377,9 @@ export class AppComponent implements OnInit {
     this.deleteChildren(nodeToDelete.children);
 
     this.localService.deleteTreeNode(id).subscribe({
-      next: () => this.fetchNodes(),
+      next: () => {
+        this.expandedNodeIds.clear();
+        this.fetchNodes()},
       error: (err) => console.error('Error deleting node:', err),
     });
   }
@@ -450,6 +453,7 @@ export class AppComponent implements OnInit {
     this.localService.updateNode(node.id, updatedNode).subscribe({
       next: () => {
         console.log('Node updated successfully');
+        this.expandedNodeIds.clear();
         this.fetchNodes(); // Refresh the nodes after update
         this.selectedNode = null;
       },
@@ -459,6 +463,8 @@ export class AppComponent implements OnInit {
       },
     });
   }
+
+
 
   cancelEdit(): void {
     // will use in future to optimize
@@ -491,6 +497,8 @@ export class AppComponent implements OnInit {
     this.localService.addSubNode(subNode).subscribe({
       next: (response) => {
         console.log('SubNode added successfully:', response);
+        this.expandedNodeIds.clear();
+
         this.fetchNodes();
       },
       error: (err) => console.error('Error adding subnode:', err),
@@ -511,6 +519,7 @@ export class AppComponent implements OnInit {
     this.localService.moveNode(nodeId, newParentId).subscribe({
       next: (response) => {
         console.log('Node moved successfully:', response);
+        this.expandedNodeIds.clear();
         this.fetchNodes();
       },
       error: (err) => alert('Parent Cannot be Child of its Children'),
