@@ -11,7 +11,7 @@ interface TreeNode {
   name: string;
   N_ID?: string | null;
   children?: TreeNode[];
-  parent: number | null |any;
+  parent: number | null | any;
   haschild?: boolean;
 }
 interface ExampleFlatNode {
@@ -22,7 +22,7 @@ interface ExampleFlatNode {
   level: number;
   haschild: boolean | any;
   children?: ExampleFlatNode[];
-  parent: any
+  parent: any;
 }
 
 const processNode = (node: any): TreeNode => ({
@@ -46,7 +46,7 @@ export class AppComponent implements OnInit {
     name: node.name,
     level: level,
     haschild: node.haschild,
-    parent:node.parent
+    parent: node.parent,
   });
 
   treeFlattener = new MatTreeFlattener( // flattener to transform
@@ -60,7 +60,7 @@ export class AppComponent implements OnInit {
   nodes: TreeNode[] = []; // nodes of array in tree structure
   expandedNodeId: number | null = null; // Add this line
   expandedNodeIds: Set<number> = new Set(); // Track expanded node IDs
-  isFiltered: boolean = false;  // Track filtering state
+  isFiltered: boolean = false; // Track filtering state
 
   treeControl = new FlatTreeControl<ExampleFlatNode | any>( // to expand and collaspe
     (node) => node.level,
@@ -110,9 +110,9 @@ export class AppComponent implements OnInit {
     });
   }
   applyFilter(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.filterValue = input.value.trim().toLowerCase();
-    this.isFiltered = false;
+    const input = event.target as HTMLInputElement; // get value from user
+    this.filterValue = input.value.trim().toLowerCase(); // convert into lowercase
+    this.isFiltered = false; // to check current state that filteration is doing or not
 
     // Clear expandedNodeIds when applying a new filter
     this.expandedNodeIds.clear();
@@ -123,14 +123,17 @@ export class AppComponent implements OnInit {
         console.log('Fetched Filtered Nodes:', response);
         if (response && response.data) {
           if (this.filterValue) {
-            const allNodes = response.data.map((node: any) => processNode(node));
+            const allNodes = response.data.map((node: any) =>
+              processNode(node)
+            ); // give hirearchy
             const filteredNodes = this.filterNodes(allNodes, this.filterValue);
-            this.isFiltered = this.filterValue !== '';
+            this.isFiltered = this.filterValue !== ''; //means we are doing filteration
 
-            this.filteredDataSource = filteredNodes;
-            this.dataSource.data = this.filteredDataSource;
+            this.filteredDataSource = filteredNodes; // give filtered nodes
+            this.dataSource.data = this.filteredDataSource; // pass to datasource
 
-            this.treeControl.dataNodes.forEach(node => {
+            this.treeControl.dataNodes.forEach((node) => {
+              // this we check it parents and children yo show filter value and expand_more btn
               if (node.name.toLowerCase().includes(this.filterValue)) {
                 this.expandNodeAndAncestors(node);
                 this.expandNodeAndDescendants(node);
@@ -153,20 +156,21 @@ export class AppComponent implements OnInit {
 
   // Helper method to expand a node and all its ancestors
   private expandNodeAndAncestors(node: any): void {
-    let parent = this.getParentNode(node);
+    let parent = this.getParentNode(node); //get parentt
     while (parent) {
+      // if any then track it all ids
       this.expandedNodeIds.add(parent.id);
       this.treeControl.expand(parent);
       parent = this.getParentNode(parent);
     }
-    this.expandedNodeIds.add(node.id);
+    this.expandedNodeIds.add(node.id); //otherwise it is root then grab its id
     this.treeControl.expand(node);
   }
 
   // Helper method to expand a node and all its descendants
   private expandNodeAndDescendants(node: any): void {
-    const descendants = this.treeControl.getDescendants(node);
-    descendants.forEach(descendant => {
+    const descendants = this.treeControl.getDescendants(node); //get values of all of its children
+    descendants.forEach((descendant) => {
       this.expandedNodeIds.add(descendant.id);
       this.treeControl.expand(descendant);
     });
@@ -174,11 +178,11 @@ export class AppComponent implements OnInit {
 
   // Helper method to get the parent node of a given node
   private getParentNode(node: any): any | null {
-    const currentLevel = this.treeControl.getLevel(node);
+    const currentLevel = this.treeControl.getLevel(node); // use level to get parent
     if (currentLevel < 1) {
       return null;
     }
-    const startIndex = this.treeControl.dataNodes.indexOf(node) - 1;
+    const startIndex = this.treeControl.dataNodes.indexOf(node) - 1; // give its value in hireachy
     for (let i = startIndex; i >= 0; i--) {
       const currentNode = this.treeControl.dataNodes[i];
       if (this.treeControl.getLevel(currentNode) < currentLevel) {
@@ -187,8 +191,6 @@ export class AppComponent implements OnInit {
     }
     return null;
   }
-
-
 
   filterNodes(nodes: TreeNode[], filterValue: string): TreeNode[] {
     // function to findout matched nodes from database
@@ -214,7 +216,8 @@ export class AppComponent implements OnInit {
       // giving parent id find its children
       next: (response) => {
         if (response && response.data) {
-          if(this.filterValue){}
+          if (this.filterValue) {
+          }
           const childrenNodes = response.data.map((child: any) =>
             processNode(child)
           );
@@ -261,7 +264,7 @@ export class AppComponent implements OnInit {
       const flatNode: ExampleFlatNode = {
         id: node.id,
         haschild: node.haschild,
-        parent:node.parent,
+        parent: node.parent,
         name: node.name,
         level: level,
         expandable: false,
@@ -332,9 +335,6 @@ export class AppComponent implements OnInit {
       }
     }
   }
-
-
-
 
   addTreeNode(name: string): void {
     if (name.trim() !== '') {
