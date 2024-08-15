@@ -5,6 +5,7 @@ import {
   MatTreeFlattener,
 } from '@angular/material/tree';
 import { LocalService } from './service/local.service';
+import { isEmpty } from 'rxjs';
 interface TreeNode {
   id: number;
   name: string;
@@ -59,7 +60,7 @@ export class AppComponent implements OnInit {
   nodes: TreeNode[] = []; // nodes of array in tree structure
   expandedNodeId: number | null = null; // Add this line
   expandedNodeIds: Set<number> = new Set(); // Track expanded node IDs
-
+  isFiltered: boolean = false;  // Track filtering state
 
   treeControl = new FlatTreeControl<ExampleFlatNode | any>( // to expand and collaspe
     (node) => node.level,
@@ -71,6 +72,7 @@ export class AppComponent implements OnInit {
   selectedNode: ExampleFlatNode | null = null; // select node to edit
   editNodeName: string = ''; // variable for edited new name
   filteredDataSource: TreeNode[] = []; // return filtered tree structure
+  filterValue: any;
 
   constructor(private localService: LocalService) {}
 
@@ -107,33 +109,86 @@ export class AppComponent implements OnInit {
       error: (err) => console.error('Error fetching nodes:', err),
     });
   }
-
   applyFilter(event: Event): void {
-    const input = event.target as HTMLInputElement; // passed as event
-    const filterValue = input.value.trim().toLowerCase();
+    const input = event.target as HTMLInputElement;
+    this.filterValue = input.value.trim().toLowerCase();
+    this.isFiltered = false;
 
-    // Call the service to get filtered nodes from the backend
-    this.localService.getFilterNodes(filterValue).subscribe({
-      // from all database
+    // Clear expandedNodeIds when applying a new filter
+    this.expandedNodeIds.clear();
+
+    // Fetch filtered nodes from the backend
+    this.localService.getFilterNodes(this.filterValue).subscribe({
       next: (response) => {
         console.log('Fetched Filtered Nodes:', response);
         if (response && response.data) {
-          const allNodes = response.data.map((node: any) => processNode(node));
-          const filteredNodes = this.filterNodes(allNodes, filterValue); // Local filter for hierarchy
-          this.filteredDataSource = filteredNodes;
-          this.dataSource.data = this.filteredDataSource;
-          this.treeControl.expandAll();
-          if (filterValue === '' && filterValue.trim()) {
-            const flattenedData = this.flattenTree(this.nodes);
-            this.dataSource.data = flattenedData;
+          if (this.filterValue) {
+            const allNodes = response.data.map((node: any) => processNode(node));
+            const filteredNodes = this.filterNodes(allNodes, this.filterValue);
+            this.isFiltered = this.filterValue !== '';
+
+            this.filteredDataSource = filteredNodes;
+            this.dataSource.data = this.filteredDataSource;
+
+            this.treeControl.dataNodes.forEach(node => {
+              if (node.name.toLowerCase().includes(this.filterValue)) {
+                this.expandNodeAndAncestors(node);
+                this.expandNodeAndDescendants(node);
+              }
+            });
           }
+          this.treeControl.expandAll(); // This ensures all nodes are expanded
         } else {
           console.error('Invalid response format:', response);
         }
       },
       error: (err) => console.error('Error fetching filtered nodes:', err),
     });
+
+    if (!this.filterValue) {
+      // If the filter is empty, reload the original nodes with pagination
+      this.fetchNodes();
+    }
   }
+
+  // Helper method to expand a node and all its ancestors
+  private expandNodeAndAncestors(node: any): void {
+    let parent = this.getParentNode(node);
+    while (parent) {
+      this.expandedNodeIds.add(parent.id);
+      this.treeControl.expand(parent);
+      parent = this.getParentNode(parent);
+    }
+    this.expandedNodeIds.add(node.id);
+    this.treeControl.expand(node);
+  }
+
+  // Helper method to expand a node and all its descendants
+  private expandNodeAndDescendants(node: any): void {
+    const descendants = this.treeControl.getDescendants(node);
+    descendants.forEach(descendant => {
+      this.expandedNodeIds.add(descendant.id);
+      this.treeControl.expand(descendant);
+    });
+  }
+
+  // Helper method to get the parent node of a given node
+  private getParentNode(node: any): any | null {
+    const currentLevel = this.treeControl.getLevel(node);
+    if (currentLevel < 1) {
+      return null;
+    }
+    const startIndex = this.treeControl.dataNodes.indexOf(node) - 1;
+    for (let i = startIndex; i >= 0; i--) {
+      const currentNode = this.treeControl.dataNodes[i];
+      if (this.treeControl.getLevel(currentNode) < currentLevel) {
+        return currentNode;
+      }
+    }
+    return null;
+  }
+
+
 
   filterNodes(nodes: TreeNode[], filterValue: string): TreeNode[] {
     // function to findout matched nodes from database
@@ -154,10 +209,12 @@ export class AppComponent implements OnInit {
   }
   fetchChildrenNodes(node: ExampleFlatNode): void {
     console.log(`Fetching children for node ID: ${node.id}`);
+
     this.localService.getChildrenNodes(node.id).subscribe({
       // giving parent id find its children
       next: (response) => {
         if (response && response.data) {
+          if(this.filterValue){}
           const childrenNodes = response.data.map((child: any) =>
             processNode(child)
           );
@@ -178,6 +235,10 @@ export class AppComponent implements OnInit {
   }
   updateTreeData() {
     const flattenedData = this.flattenTree(this.nodes);
+    // if(this.applyFilter(event)){
+    //   console.log("updated data test")
+    //   return
+    // }
     this.dataSource.data = flattenedData;
     this.treeControl.expandAll();
     this.treeControl.dataNodes = flattenedData;
@@ -232,34 +293,38 @@ export class AppComponent implements OnInit {
     }
 
     const parentNode = this.findNodeById(this.nodes, node.id);
+
     if (
       parentNode &&
       (!parentNode.children || parentNode.children.length === 0)
     ) {
-      this.fetchChildrenNodes(node);
-      this.expandedNodeId = node.id; // Set the current expanded node ID
+      if (!this.filterValue) {
+        this.fetchChildrenNodes(node);
+      }
+      this.expandedNodeId = node.id;
       this.treeControl.toggle(node);
     } else {
       this.treeControl.toggle(node);
       if (this.treeControl.isExpanded(node)) {
-        this.expandedNodeId = node.id; // Set the expanded node ID
+        this.expandedNodeId = node.id;
       } else {
-        this.expandedNodeId = null; // Reset if collapsing
+        this.expandedNodeId = null;
       }
     }
 
-    if (this.expandedNodeIds.has(node.id)) { // check in all where we track
+    if (this.expandedNodeIds.has(node.id)) {
       this.expandedNodeIds.delete(node.id);
       this.treeControl.collapse(node);
     } else {
       this.expandedNodeIds.add(node.id);
       this.treeControl.expand(node);
 
-      // Ensure all parent nodes are expanded
       let parentNode = this.findNodeById(this.nodes, node.parent);
       while (parentNode) {
         this.expandedNodeIds.add(parentNode.id);
-        const flatNode = this.treeControl.dataNodes.find(n => n.id === parentNode!.id);
+        const flatNode = this.treeControl.dataNodes.find(
+          (n) => n.id === parentNode!.id
+        );
         if (flatNode) {
           this.treeControl.expand(flatNode);
         }
@@ -267,6 +332,8 @@ export class AppComponent implements OnInit {
       }
     }
   }
+
+
 
 
   addTreeNode(name: string): void {
