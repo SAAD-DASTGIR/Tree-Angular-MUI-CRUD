@@ -162,8 +162,8 @@ export class AppComponent implements OnInit {
       this.treeControl.expand(parent);
       parent = this.getParentNode(parent);
     }
-    this.expandedNodeIds.add(node.id); //otherwise it is root then grab its id
-    this.treeControl.expand(node);
+    // this.expandedNodeIds.add(node.id); //otherwise it is root then grab its id
+    // this.treeControl.expand(node);
   }
 
   // Helper method to expand a node and all its descendants
