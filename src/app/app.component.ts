@@ -357,44 +357,50 @@ export class AppComponent implements OnInit {
       alert("ERROR: Node Already Exists Or You've entered Invalid Node");
     }
   }
-  deleteTreeNode(id: number): void {
-    const nodeToDelete = this.findNodeById(this.nodes, id);
+deleteTreeNode(id: number): void {
+  // Find the node to delete in the filtered data if filtered, otherwise in the original data
+  const nodeToDelete = this.isFiltered
+    ? this.findNodeById(this.filteredDataSource, id)
+    : this.findNodeById(this.nodes, id);
 
-    if (!nodeToDelete) {
-      alert('Node not found');
+  if (!nodeToDelete) {
+    alert('Node not found');
+    return;
+  }
+
+  // If node has children, confirm deletion
+  if (nodeToDelete.children && nodeToDelete.children.length > 0) {
+    const confirmDelete = confirm(
+      'Selected node has children. Are you sure you want to delete it and all its children?'
+    );
+    if (!confirmDelete) {
       return;
     }
+  }
 
-    if (nodeToDelete.children && nodeToDelete.children.length > 0) {
-      const confirmDelete = confirm(
-        'Selected node has children. Are you sure you want to delete it and all its children?'
-      );
-      if (!confirmDelete) {
-        return;
-      }
-    }
+  // Delete node and its children
+  this.deleteChildren(nodeToDelete.children);
 
-    this.deleteChildren(nodeToDelete.children);
+  this.localService.deleteTreeNode(id).subscribe({
+    next: () => {
+      this.expandedNodeIds.clear();
+      this.fetchNodes(); // Refresh tree after deletion
+      console.log(this.fetchNodes())
+    },
+    error: (err) => console.error('Error deleting node:', err),
+  });
+}
+private deleteChildren(children: TreeNode[] | undefined): void {
+  if (!children) return;
 
-    this.localService.deleteTreeNode(id).subscribe({
-      next: () => {
-        this.expandedNodeIds.clear();
-        this.fetchNodes()},
-      error: (err) => console.error('Error deleting node:', err),
+  for (const child of children) {
+    this.deleteChildren(child.children);
+    this.localService.deleteTreeNode(child.id).subscribe({
+      next: () => console.log(`Deleted child node with id: ${child.id}`),
+      error: (err) => console.error('Error deleting child node:', err),
     });
   }
-
-  private deleteChildren(children: TreeNode[] | undefined): void {
-    if (!children) return;
-
-    for (const child of children) {
-      this.deleteChildren(child.children);
-      this.localService.deleteTreeNode(child.id).subscribe({
-        next: () => console.log(`Deleted child node with id: ${child.id}`),
-        error: (err) => console.error('Error deleting child node:', err),
-      });
-    }
-  }
+}
 
   findNodeById(tree: TreeNode[], id: number): TreeNode | undefined {
     for (let node of tree) {
