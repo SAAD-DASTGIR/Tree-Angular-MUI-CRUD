@@ -247,12 +247,7 @@ updateTreeData() {
   this.treeControl.dataNodes = flattenedData;
 
   // Manually manage the expansion state instead of using expandAll
-  this.expandedNodeIds.forEach(id => {
-    const node = this.treeControl.dataNodes.find(n => n.id === id);
-    if (node) {
-      this.treeControl.expand(node);
-    }
-  });
+
 }
 
 
