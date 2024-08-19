@@ -81,7 +81,6 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // on intializes fetch load nodes mainly parents
     this.fetchNodes();
-    this.treeControl.expandAll();
   }
 
   parseStringToInt(value: string): number {
@@ -140,7 +139,7 @@ export class AppComponent implements OnInit {
               }
             });
           }
-          this.treeControl.expandAll(); // This ensures all nodes are expanded
+          // this.treeControl.expandAll(); // This ensures all nodes are expanded
         } else {
           console.error('Invalid response format:', response);
         }
@@ -236,18 +235,26 @@ export class AppComponent implements OnInit {
       error: (err) => console.error('Error fetching children nodes:', err),
     });
   }
-  updateTreeData() {
-    const flattenedData = this.flattenTree(this.nodes);
-    // if(this.applyFilter(event)){
-    //   console.log("updated data test")
-    //   return
-    // }
-    this.dataSource.data = flattenedData;
-    this.treeControl.expandAll();
-    this.treeControl.dataNodes = flattenedData;
-    this.treeControl.expandAll();
-    console.log('Updated Flattened Tree:', this.dataSource.data);
-  }
+updateTreeData() {
+  const flattenedData = this.flattenTree(this.nodes);
+  this.dataSource.data = flattenedData;
+  this.expandedNodeIds.forEach(id => {
+    const node = this.treeControl.dataNodes.find(n => n.id === id);
+    if (node) {
+      this.treeControl.expand(node);
+    }
+  });
+  this.treeControl.dataNodes = flattenedData;
+
+  // Manually manage the expansion state instead of using expandAll
+  this.expandedNodeIds.forEach(id => {
+    const node = this.treeControl.dataNodes.find(n => n.id === id);
+    if (node) {
+      this.treeControl.expand(node);
+    }
+  });
+}
+
 
   flattenTree(
     nodes: TreeNode[],
@@ -319,9 +326,17 @@ export class AppComponent implements OnInit {
     if (this.expandedNodeIds.has(node.id)) {
       this.expandedNodeIds.delete(node.id);
       this.treeControl.collapse(node);
+      console.log("test close")
+      // this.expandedNodeIds.clear()
+      // this.fetchNodes()
+      // Collapse all descendants
+      this.collapseDescendants(node);
     } else {
       this.expandedNodeIds.add(node.id);
+      console.log("hehe")
       this.treeControl.expand(node);
+      this.collapseDescendants(node);
+
 
       let parentNode = this.findNodeById(this.nodes, node.parent);
       while (parentNode) {
@@ -336,6 +351,17 @@ export class AppComponent implements OnInit {
       }
     }
   }
+
+  // Helper method to collapse all descendants of a node
+  private collapseDescendants(node: ExampleFlatNode): void {
+    const descendants = this.treeControl.getDescendants(node);
+    descendants.forEach((descendant) => {
+      this.expandedNodeIds.delete(descendant.id);
+      this.treeControl.collapse(descendant);
+      // console.log("test")
+    });
+  }
+
 
   addTreeNode(name: string): void {
     if (name.trim() !== '') {
