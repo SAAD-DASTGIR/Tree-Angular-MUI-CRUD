@@ -116,17 +116,22 @@
         (click)="toggleNode(node)"
         [attr.aria-label]="'Toggle ' + node.name"
       >
-        <mat-icon>
-          {{ expandedNodeIds.has(node.id) ? "expand_more" : "chevron_right" }}
-        </mat-icon>
-      </button>
-      ID = {{ node.id }} Value = {{ node.name }}
-      <button mat-icon-button color="warn" (click)="deleteTreeNode(node.id)">
-        <mat-icon>delete</mat-icon>
-      </button>
-      <button mat-icon-button color="primary" (click)="editNode(node)">
-        <mat-icon>edit</mat-icon>
-      </button>
+      <mat-icon>
+        {{ expandedNodeIds.has(node.id) ? "expand_more" : "chevron_right" }}
+      </mat-icon>
+    </button>
+    ID = {{ node.id }} Value = {{ node.name }}
+    <button mat-icon-button color="warn" (click)="deleteTreeNode(node.id)">
+      <mat-icon>delete</mat-icon>
+    </button>
+    <button mat-icon-button color="primary" (click)="editNode(node)">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <!-- <mat-progress-bar
+      *ngIf="let node; when: hasChild"
+      mode="indeterminate"
+      class="example-tree-progress-bar">
+    </mat-progress-bar> -->
     </mat-tree-node>
   </mat-tree>
 

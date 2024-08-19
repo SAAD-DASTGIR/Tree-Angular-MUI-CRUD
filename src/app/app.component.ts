@@ -135,7 +135,7 @@ export class AppComponent implements OnInit {
               // this we check it parents and children yo show filter value and expand_more btn
               if (node.name.toLowerCase().includes(this.filterValue)) {
                 this.expandNodeAndAncestors(node);
-                this.expandNodeAndDescendants(node);
+                // this.expandNodeAndDescendants(node);
               }
             });
           }
